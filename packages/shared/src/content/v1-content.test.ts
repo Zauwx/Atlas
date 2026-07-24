@@ -37,11 +37,34 @@ describe("Ridge and Pools map", () => {
 
   it("has the ridge, pools, and pits where the design says", () => {
     expect(cellAt(5, 5)?.z).toBe(2);
-    expect(cellAt(6, 9)?.z).toBe(2);
+    expect(cellAt(6, 8)?.z).toBe(2);
     expect(cellAt(2, 5)?.terrainId).toBe("water");
     expect(cellAt(9, 7)?.terrainId).toBe("water");
     expect(cellAt(5, 1)?.terrainId).toBe("void");
     expect(cellAt(6, 10)?.terrainId).toBe("void");
+  });
+
+  it("ramps the ridge ends to z1 so the high ground is actually reachable", () => {
+    // A single step climbs at most +1, so a z2 ridge beside z0 ground would
+    // be unreachable forever. Both ends drop to z1.
+    for (const [x, y] of [
+      [5, 2],
+      [6, 2],
+      [5, 9],
+      [6, 9],
+    ] as const) {
+      expect(cellAt(x, y)?.z).toBe(1);
+    }
+    // And each ramp touches ground, so the 0 → 1 → 2 route exists.
+    expect(cellAt(4, 2)?.z).toBe(0);
+    expect(cellAt(5, 3)?.z).toBe(2);
+  });
+
+  it("places every terrain that now has behavior", () => {
+    const placed = new Set(map.cells.map((cell) => cell.terrainId));
+    for (const terrainId of ["water", "ice", "lava", "vegetation", "void"]) {
+      expect(placed).toContain(terrainId);
+    }
   });
 
   it("spawns stand on plain ground at z0", () => {

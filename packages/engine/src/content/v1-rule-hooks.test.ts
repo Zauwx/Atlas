@@ -4,11 +4,14 @@ import {
   CLASS_ID_TIDECALLER,
   CLASS_ID_VANGUARD,
   SPELL_ID_DRENCH,
+  SPELL_ID_GROUND_SLAM,
   SPELL_ID_SHOVE,
   SPELL_ID_WATER_JET,
   STANCE_ID_FLOW,
   STANCE_ID_IRON,
   STANCE_ID_STORM,
+  STATE_ID_FROZEN,
+  createV1Map,
   V1_GAME_CONFIG,
 } from "@atlas/shared";
 import { MatchSimulation } from "../simulation.js";
@@ -67,6 +70,71 @@ function createV1Sim(options: {
   expect(sim.getSnapshot().phase).toBe("UnitTurns");
   return sim;
 }
+
+describe("the V1 map's high ground is actually reachable", () => {
+  /**
+   * The reported bug: a z2 ridge beside z0 ground cannot be climbed,
+   * because one step climbs at most +1. Ramps make the route 0 → 1 → 2.
+   */
+  const standNextToRamp = () =>
+    new MatchSimulation(
+      MATCH_ID,
+      V1_GAME_CONFIG,
+      {
+        map: createV1Map(),
+        players: [
+          {
+            id: PLAYER_1,
+            // (4,2) is plain ground beside the north ramp at (5,2).
+            units: [{ id: UNIT_1, classId: CLASS_ID_VANGUARD, position: { x: 4, y: 2, z: 0 } }],
+          },
+          {
+            id: PLAYER_2,
+            units: [{ id: UNIT_2, classId: CLASS_ID_TIDECALLER, position: { x: 10, y: 6, z: 0 } }],
+          },
+        ],
+      },
+      createV1RuleRegistry(),
+    );
+
+  it("lets a unit climb the ramp onto the ridge", () => {
+    const sim = standNextToRamp();
+    sim.handleIntent(PLAYER_1, { type: "ChooseStance", stanceId: STANCE_ID_FLOW });
+    sim.handleIntent(PLAYER_2, { type: "ChooseStance", stanceId: STANCE_ID_IRON });
+
+    const climb = sim.handleIntent(PLAYER_1, {
+      type: "Move",
+      unitId: UNIT_1,
+      path: [
+        { x: 5, y: 2, z: 1 },
+        { x: 5, y: 3, z: 2 },
+      ],
+    });
+    expect(climb.accepted).toBe(true);
+    expect(sim.getSnapshot().units.find((unit) => unit.id === UNIT_1)?.position).toEqual({
+      x: 5,
+      y: 3,
+      z: 2,
+    });
+  });
+
+  it("costs 4 MP without Flow — beyond the Vanguard's 3 — so Flow is the way up", () => {
+    const sim = standNextToRamp();
+    sim.handleIntent(PLAYER_1, { type: "ChooseStance", stanceId: STANCE_ID_IRON });
+    sim.handleIntent(PLAYER_2, { type: "ChooseStance", stanceId: STANCE_ID_IRON });
+
+    expect(
+      sim.handleIntent(PLAYER_1, {
+        type: "Move",
+        unitId: UNIT_1,
+        path: [
+          { x: 5, y: 2, z: 1 },
+          { x: 5, y: 3, z: 2 },
+        ],
+      }),
+    ).toMatchObject({ accepted: false, rejection: { code: "NotEnoughMovementPoints" } });
+  });
+});
 
 describe("V1 stance and state rules", () => {
   it("Storm Stance: your pushes travel 1 cell further (Shove 2 → 3)", () => {
@@ -159,6 +227,128 @@ describe("V1 stance and state rules", () => {
         sourceSpellId: SPELL_ID_WATER_JET,
       });
     }
+  });
+
+  it("Ice applies Frozen, which forbids climbing even in Flow Stance", () => {
+    // Walk onto ice, then try to climb the step beyond it.
+    const iceMap = buildMap(
+      [
+        [0, 0, 1],
+        [0, 0, 0],
+        [0, 0, 0],
+      ],
+      [
+        ["normal", "ice", "normal"],
+        ["normal", "normal", "normal"],
+        ["normal", "normal", "normal"],
+      ],
+    );
+    const sim = createV1Sim({
+      map: iceMap,
+      unit1: { x: 0, y: 0, z: 0 },
+      unit2: { x: 0, y: 2, z: 0 },
+      stance1: STANCE_ID_FLOW,
+      stance2: STANCE_ID_IRON,
+    });
+
+    const ontoIce = sim.handleIntent(PLAYER_1, {
+      type: "Move",
+      unitId: UNIT_1,
+      path: [{ x: 1, y: 0, z: 0 }],
+    });
+    expect(ontoIce.accepted).toBe(true);
+    if (ontoIce.accepted) {
+      expect(ontoIce.events).toContainEqual({
+        type: "ApplyState",
+        stateId: STATE_ID_FROZEN,
+        target: { kind: "Unit", unitId: UNIT_1 },
+        duration: 1,
+      });
+    }
+
+    expect(
+      sim.handleIntent(PLAYER_1, {
+        type: "Move",
+        unitId: UNIT_1,
+        path: [{ x: 2, y: 0, z: 1 }],
+      }),
+    ).toMatchObject({ accepted: false, rejection: { code: "ClimbBlocked" } });
+  });
+
+  it("Lava applies Burning, which deals 15 Fire damage at each round end", () => {
+    const lavaMap = buildMap(
+      [
+        [0, 0],
+        [0, 0],
+      ],
+      [
+        ["normal", "lava"],
+        ["normal", "normal"],
+      ],
+    );
+    const sim = createV1Sim({
+      map: lavaMap,
+      unit1: { x: 0, y: 0, z: 0 },
+      unit2: { x: 0, y: 1, z: 0 },
+      stance1: STANCE_ID_IRON,
+      stance2: STANCE_ID_IRON,
+    });
+
+    sim.handleIntent(PLAYER_1, { type: "Move", unitId: UNIT_1, path: [{ x: 1, y: 0, z: 0 }] });
+    sim.handleIntent(PLAYER_1, { type: "EndTurn", unitId: UNIT_1 });
+    const roundEnd = sim.handleIntent(PLAYER_2, { type: "EndTurn", unitId: UNIT_2 });
+
+    expect(roundEnd.accepted).toBe(true);
+    if (roundEnd.accepted) {
+      expect(roundEnd.events).toContainEqual({
+        type: "Damage",
+        targetUnitId: UNIT_1,
+        amount: 15,
+        element: "Fire",
+        sourceUnitId: null,
+        sourceSpellId: null,
+      });
+    }
+    // Vanguard has 110 HP and Burning lasts 2 rounds, so it keeps ticking.
+    expect(sim.getSnapshot().units.find((unit) => unit.id === UNIT_1)?.currentHealthPoints).toBe(
+      95,
+    );
+  });
+
+  it("Vegetation blocks line of sight at ground level, but not from high ground", () => {
+    const coverTerrains = [
+      ["normal", "vegetation", "normal"],
+      ["normal", "normal", "normal"],
+    ];
+    const castAcrossCover = (casterHeight: number) => {
+      const sim = createV1Sim({
+        map: buildMap(
+          [
+            [casterHeight, 0, 0],
+            [0, 0, 0],
+          ],
+          coverTerrains,
+        ),
+        unit1: { x: 0, y: 0, z: casterHeight },
+        unit2: { x: 0, y: 1, z: 0 },
+        stance1: STANCE_ID_IRON,
+        stance2: STANCE_ID_IRON,
+      });
+      // Ground Slam reaches 2 cells and needs line of sight.
+      return sim.handleIntent(PLAYER_1, {
+        type: "CastSpell",
+        unitId: UNIT_1,
+        spellId: SPELL_ID_GROUND_SLAM,
+        target: { x: 2, y: 0, z: 0 },
+      });
+    };
+
+    expect(castAcrossCover(0)).toMatchObject({
+      accepted: false,
+      rejection: { code: "NoLineOfSight" },
+    });
+    // From z2 the same vegetation is beneath the sightline.
+    expect(castAcrossCover(2).accepted).toBe(true);
   });
 
   it("Flow Stance: climbing +1 z costs no extra MP", () => {

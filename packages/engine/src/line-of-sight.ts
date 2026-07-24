@@ -63,19 +63,22 @@ export function supercoverCrossedCells(
 }
 
 /**
- * The rule itself, over any height lookup. Exported so UI targeting
+ * The rule itself, over any sight-height lookup. Exported so UI targeting
  * previews reuse this exact implementation instead of restating the rule
  * (ARCHITECTURE.md "Client Rendering Decisions"): the client may show what
  * the server would decide, but never decides for itself.
+ *
+ * `sightHeightAt` returns a cell's height plus 1 when its terrain is
+ * opaque (rulebook: Line of Sight, step 3).
  */
 export function hasLineOfSightOverHeights(
-  heightAt: (x: number, y: number) => number,
+  sightHeightAt: (x: number, y: number) => number,
   from: CellCoord,
   to: CellCoord,
 ): boolean {
   const blockingHeight = Math.max(from.z, to.z) + 1;
   for (const crossed of supercoverCrossedCells(from, to)) {
-    if (heightAt(crossed.x, crossed.y) >= blockingHeight) {
+    if (sightHeightAt(crossed.x, crossed.y) >= blockingHeight) {
       return false;
     }
   }
@@ -83,5 +86,13 @@ export function hasLineOfSightOverHeights(
 }
 
 export function hasLineOfSight(state: MatchState, from: CellCoord, to: CellCoord): boolean {
-  return hasLineOfSightOverHeights((x, y) => cellAt(state, x, y).z, from, to);
+  return hasLineOfSightOverHeights(
+    (x, y) => {
+      const cell = cellAt(state, x, y);
+      const opaque = state.registries.terrainById.get(cell.terrainId)?.opaque === true;
+      return cell.z + (opaque ? 1 : 0);
+    },
+    from,
+    to,
+  );
 }

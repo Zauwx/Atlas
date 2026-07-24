@@ -12,7 +12,7 @@ import type {
   SpellId,
   UnitId,
 } from "@atlas/shared";
-import { hasLineOfSightOverHeights } from "@atlas/engine";
+import { canClimbUnderRules, createV1RuleRegistry, hasLineOfSightOverHeights } from "@atlas/engine";
 import type { MatchConnection } from "../net/connection.js";
 import type { MatchSession, SessionSink } from "../net/match-session.js";
 import { MatchView, type UnitView } from "../state/match-view.js";
@@ -56,6 +56,11 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
   private readonly unitVisuals = new Map<UnitId, UnitVisual>();
   private hud!: Hud;
 
+  /**
+   * The same rule hooks the server runs, used only to preview what it
+   * would decide (reachable cells, spell targets). Never authoritative.
+   */
+  private readonly ruleRegistry = createV1RuleRegistry();
   private readonly eventQueue: GameEvent[] = [];
   private animating = false;
   private selectedSpellId: SpellId | null = null;
@@ -344,7 +349,7 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
       return;
     }
 
-    const path = suggestPath(this.view, myUnit, cell.x, cell.y);
+    const path = suggestPath(this.view, myUnit, cell.x, cell.y, this.canClimb(myUnit));
     if (path !== null) {
       this.connection.sendIntent({ type: "Move", unitId: myUnit.id, path });
     }
@@ -355,6 +360,15 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     if (myUnit !== null) {
       this.connection.sendIntent({ type: "EndTurn", unitId: myUnit.id });
     }
+  }
+
+  /** Frozen-style states forbid climbing, so previews must reflect it. */
+  private canClimb(unit: UnitView): boolean {
+    const modifierIds = [
+      ...(unit.revealedStanceId === null ? [] : [unit.revealedStanceId]),
+      ...unit.states.map((instance) => instance.stateId),
+    ];
+    return canClimbUnderRules(this.ruleRegistry, modifierIds);
   }
 
   private myActiveUnit(): UnitView | null {
@@ -518,7 +532,7 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     }
 
     if (this.selectedSpellId === null) {
-      for (const reachable of reachableCells(this.view, activeUnit)) {
+      for (const reachable of reachableCells(this.view, activeUnit, this.canClimb(activeUnit))) {
         this.fillCell(reachable.coord.x, reachable.coord.y, reachable.coord.z, 0xffffff, 0.18);
       }
       return;
@@ -531,7 +545,18 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     if (spell === null) {
       return;
     }
-    const heightAt = (x: number, y: number): number => this.view.cellAt(x, y)?.z ?? 0;
+    // Sight height: terrain height, plus one where the terrain is opaque
+    // (rulebook: Line of Sight) — vegetation conceals at ground level.
+    const opaqueTerrains = new Set(
+      this.view.config.terrains.filter((terrain) => terrain.opaque).map((terrain) => terrain.id),
+    );
+    const heightAt = (x: number, y: number): number => {
+      const cell = this.view.cellAt(x, y);
+      if (cell === null) {
+        return 0;
+      }
+      return cell.z + (opaqueTerrains.has(cell.terrainId) ? 1 : 0);
+    };
     for (const cell of this.view.cells) {
       const distance =
         Math.abs(cell.x - activeUnit.position.x) + Math.abs(cell.y - activeUnit.position.y);

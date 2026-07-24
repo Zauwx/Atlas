@@ -3,7 +3,10 @@ import type { MapConfig } from "../config/map-config.js";
 import {
   BASELINE_GAME_CONFIG,
   STATE_ID_WET,
+  TERRAIN_ID_ICE,
+  TERRAIN_ID_LAVA,
   TERRAIN_ID_NORMAL,
+  TERRAIN_ID_VEGETATION,
   TERRAIN_ID_VOID,
   TERRAIN_ID_WATER,
 } from "../config/baseline-game-config.js";
@@ -150,25 +153,52 @@ export const V1_GAME_CONFIG: GameConfig = {
 };
 
 /**
- * "Ridge and Pools", the V1 map: a central z2 ridge that blocks line of
- * sight and rewards Flow climbs, two water pools that set up Wet slides,
- * and two void pits at the ridge ends where traffic funnels.
+ * "Ridge and Pools", the V1 map.
+ *
+ * The ridge is z2 and a single step climbs at most +1, so its two end
+ * cells are z1 ramps: the only way up is 0 → 1 → 2. That costs 4 MP
+ * normally — more than either class carries — but 2 MP in Flow Stance, so
+ * high ground is a contested objective rather than a free perch. Both
+ * ramps sit beside a void pit, which makes shoving someone off the
+ * approach a real play.
+ *
+ * Every other terrain earns its place: water pools set up Wet slides, ice
+ * flanks the mid-ridge so hugging it freezes you out of the climb, lava
+ * tempts a shortcut through the corridors, and vegetation gives ground
+ * cover that high ground can see straight over.
  */
 export function createV1Map(): MapConfig {
+  const isRidge = (x: number, y: number): boolean => (x === 5 || x === 6) && y >= 2 && y <= 9;
+  const isRamp = (x: number, y: number): boolean => isRidge(x, y) && (y === 2 || y === 9);
+
   const cells = [];
   for (let y = 0; y < 12; y += 1) {
     for (let x = 0; x < 12; x += 1) {
       let z = 0;
-      let terrainId = TERRAIN_ID_NORMAL;
-      if ((x === 5 || x === 6) && y >= 2 && y <= 9) {
-        z = 2;
+      if (isRidge(x, y)) {
+        z = isRamp(x, y) ? 1 : 2;
       }
+
+      let terrainId = TERRAIN_ID_NORMAL;
       if ((x === 2 || x === 3 || x === 8 || x === 9) && y >= 4 && y <= 7) {
         terrainId = TERRAIN_ID_WATER;
+      }
+      if ((x === 4 || x === 7) && (y === 5 || y === 6)) {
+        terrainId = TERRAIN_ID_ICE;
+      }
+      if ((x === 5 || x === 6) && (y === 0 || y === 11)) {
+        terrainId = TERRAIN_ID_LAVA;
+      }
+      if ((x === 2 || x === 3) && y === 2) {
+        terrainId = TERRAIN_ID_VEGETATION;
+      }
+      if ((x === 8 || x === 9) && y === 9) {
+        terrainId = TERRAIN_ID_VEGETATION;
       }
       if ((x === 5 && y === 1) || (x === 6 && y === 10)) {
         terrainId = TERRAIN_ID_VOID;
       }
+
       cells.push({ z, terrainId });
     }
   }

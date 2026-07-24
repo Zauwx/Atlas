@@ -41,7 +41,7 @@ export class MatchSimulation {
     this.matchId = matchId;
     this.registry = registry;
     this.state = createMatchState(config, setup);
-    startRound(this.state, this.state.eventLog);
+    startRound(this.state, this.registry, this.state.eventLog);
   }
 
   handleIntent(playerId: PlayerId, intent: PlayerIntent): IntentResult {
@@ -57,7 +57,7 @@ export class MatchSimulation {
     // cleanup for an active unit that died during its own action.
     if (intent.type === "Move" || intent.type === "CastSpell") {
       finalizeResolution(this.state, this.state.eventLog);
-      endTurnIfActiveUnitDead(this.state, this.state.eventLog);
+      endTurnIfActiveUnitDead(this.state, this.registry, this.state.eventLog);
     }
     return { accepted: true, events: this.state.eventLog.slice(before) };
   }
@@ -79,11 +79,23 @@ export class MatchSimulation {
         return outcome.ok ? null : outcome.code;
       }
       case "ChooseStance": {
-        const outcome = tryLockStance(this.state, playerId, intent, this.state.eventLog);
+        const outcome = tryLockStance(
+          this.state,
+          this.registry,
+          playerId,
+          intent,
+          this.state.eventLog,
+        );
         return outcome.ok ? null : outcome.code;
       }
       case "EndTurn": {
-        const outcome = tryEndTurn(this.state, playerId, intent, this.state.eventLog);
+        const outcome = tryEndTurn(
+          this.state,
+          this.registry,
+          playerId,
+          intent,
+          this.state.eventLog,
+        );
         return outcome.ok ? null : outcome.code;
       }
     }

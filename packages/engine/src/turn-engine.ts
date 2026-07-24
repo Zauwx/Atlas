@@ -8,7 +8,10 @@ import type {
 } from "@atlas/shared";
 import type { MatchState, UnitRuntime } from "./match-state.js";
 import { unitById } from "./board.js";
+import type { RuleModifierRegistry } from "./rules.js";
+import { roundEndDamageFor } from "./rules.js";
 import { tickStatesEndOfRound } from "./states.js";
+import { finalizeResolution } from "./victory.js";
 
 /**
  * Round and turn flow — COMBAT_RULEBOOK.md "Round Structure" and
@@ -19,7 +22,11 @@ import { tickStatesEndOfRound } from "./states.js";
 export type TurnOutcome =
   { readonly ok: true } | { readonly ok: false; readonly code: IntentErrorCode };
 
-export function startRound(state: MatchState, events: GameEvent[]): void {
+export function startRound(
+  state: MatchState,
+  registry: RuleModifierRegistry,
+  events: GameEvent[],
+): void {
   if (state.phase === "Finished") {
     return;
   }
@@ -34,7 +41,7 @@ export function startRound(state: MatchState, events: GameEvent[]): void {
 
   if (state.config.stances.length === 0) {
     // Rulebook: with no stances configured, steps 3–6 are skipped.
-    beginUnitTurns(state, events);
+    beginUnitTurns(state, registry, events);
   } else {
     state.phase = "StanceSelection";
     state.activeInitiativeIndex = -1;
@@ -43,6 +50,7 @@ export function startRound(state: MatchState, events: GameEvent[]): void {
 
 export function tryLockStance(
   state: MatchState,
+  registry: RuleModifierRegistry,
   playerId: PlayerId,
   intent: ChooseStanceIntent,
   events: GameEvent[],
@@ -70,12 +78,16 @@ export function tryLockStance(
     (id) => !playerHasLivingUnits(state, id) || state.lockedStances.has(id),
   );
   if (everyLivingPlayerLocked) {
-    revealStances(state, events);
+    revealStances(state, registry, events);
   }
   return { ok: true };
 }
 
-function revealStances(state: MatchState, events: GameEvent[]): void {
+function revealStances(
+  state: MatchState,
+  registry: RuleModifierRegistry,
+  events: GameEvent[],
+): void {
   // Simultaneous reveal (rulebook Round Structure step 5): one event per
   // player, all at the same simulation step, in deterministic join order.
   for (const playerId of state.playerOrder) {
@@ -91,14 +103,18 @@ function revealStances(state: MatchState, events: GameEvent[]): void {
     }
   }
   state.lockedStances.clear();
-  beginUnitTurns(state, events);
+  beginUnitTurns(state, registry, events);
 }
 
-function beginUnitTurns(state: MatchState, events: GameEvent[]): void {
+function beginUnitTurns(
+  state: MatchState,
+  registry: RuleModifierRegistry,
+  events: GameEvent[],
+): void {
   state.initiativeOrder = computeInitiativeOrder(state);
   state.phase = "UnitTurns";
   state.activeInitiativeIndex = -1;
-  advanceToNextTurn(state, events);
+  advanceToNextTurn(state, registry, events);
 }
 
 /**
@@ -132,6 +148,7 @@ export function computeInitiativeOrder(state: MatchState): UnitId[] {
 
 export function tryEndTurn(
   state: MatchState,
+  registry: RuleModifierRegistry,
   playerId: PlayerId,
   intent: EndTurnIntent,
   events: GameEvent[],
@@ -150,19 +167,27 @@ export function tryEndTurn(
   if (unit.playerId !== playerId || activeId !== unit.id) {
     return { ok: false, code: "NotYourTurn" };
   }
-  endActiveTurn(state, events);
+  endActiveTurn(state, registry, events);
   return { ok: true };
 }
 
-export function endActiveTurn(state: MatchState, events: GameEvent[]): void {
+export function endActiveTurn(
+  state: MatchState,
+  registry: RuleModifierRegistry,
+  events: GameEvent[],
+): void {
   const activeId = state.initiativeOrder[state.activeInitiativeIndex];
   if (activeId !== undefined) {
     events.push({ type: "TurnEnded", unitId: activeId });
   }
-  advanceToNextTurn(state, events);
+  advanceToNextTurn(state, registry, events);
 }
 
-function advanceToNextTurn(state: MatchState, events: GameEvent[]): void {
+function advanceToNextTurn(
+  state: MatchState,
+  registry: RuleModifierRegistry,
+  events: GameEvent[],
+): void {
   let nextIndex = state.activeInitiativeIndex + 1;
   while (nextIndex < state.initiativeOrder.length) {
     const unitId = state.initiativeOrder[nextIndex];
@@ -174,7 +199,7 @@ function advanceToNextTurn(state: MatchState, events: GameEvent[]): void {
     }
     nextIndex += 1;
   }
-  endRound(state, events);
+  endRound(state, registry, events);
 }
 
 function startUnitTurn(state: MatchState, unit: UnitRuntime, events: GameEvent[]): void {
@@ -187,24 +212,50 @@ function startUnitTurn(state: MatchState, unit: UnitRuntime, events: GameEvent[]
   events.push({ type: "TurnStarted", unitId: unit.id });
 }
 
-function endRound(state: MatchState, events: GameEvent[]): void {
-  // Rulebook Round Structure step 8: end-of-round effects, then next round.
+/**
+ * Rulebook "End of round": periodic state effects resolve, then the usual
+ * death/victory finalization, then durations tick — so a state expiring
+ * this round still deals its damage.
+ */
+function endRound(state: MatchState, registry: RuleModifierRegistry, events: GameEvent[]): void {
+  for (const unit of state.units) {
+    if (!unit.alive) {
+      continue;
+    }
+    for (const damage of roundEndDamageFor(registry, unit)) {
+      unit.currentHealthPoints -= damage.amount;
+      events.push({
+        type: "Damage",
+        targetUnitId: unit.id,
+        amount: damage.amount,
+        element: damage.element,
+        sourceUnitId: null,
+        sourceSpellId: null,
+      });
+    }
+  }
+
+  finalizeResolution(state, events);
   tickStatesEndOfRound(state, events);
-  startRound(state, events);
+  startRound(state, registry, events);
 }
 
 /**
  * Post-resolution cleanup (rulebook Edge Cases): if the active unit died
  * during its own action, its turn ends automatically.
  */
-export function endTurnIfActiveUnitDead(state: MatchState, events: GameEvent[]): void {
+export function endTurnIfActiveUnitDead(
+  state: MatchState,
+  registry: RuleModifierRegistry,
+  events: GameEvent[],
+): void {
   if (state.phase !== "UnitTurns") {
     return;
   }
   const activeId = state.initiativeOrder[state.activeInitiativeIndex];
   const unit = activeId === undefined ? null : unitById(state, activeId);
   if (unit !== null && !unit.alive) {
-    endActiveTurn(state, events);
+    endActiveTurn(state, registry, events);
   }
 }
 

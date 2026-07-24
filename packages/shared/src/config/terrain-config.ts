@@ -24,6 +24,12 @@ export const TerrainConfigSchema = z.object({
    * the death-check step, regardless of HP.
    */
   bottomless: z.boolean(),
+  /**
+   * Opaque terrain (rulebook "Line of Sight"): counts as one level taller
+   * for sight only. Blocks vision between units on its level; high ground
+   * sees over it. Never impedes movement.
+   */
+  opaque: z.boolean(),
 });
 
 export type TerrainConfig = z.infer<typeof TerrainConfigSchema>;

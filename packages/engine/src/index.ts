@@ -5,7 +5,12 @@
  */
 
 export { MatchSimulation, type IntentResult } from "./simulation.js";
-export { RuleModifierRegistry, type RuleModifierHooks } from "./rules.js";
+export {
+  RuleModifierRegistry,
+  canClimbUnderRules,
+  climbCostUnderRules,
+  type RuleModifierHooks,
+} from "./rules.js";
 export { createV1RuleRegistry } from "./content/v1-rule-hooks.js";
 export { MatchSetupError } from "./match-state.js";
 export { computeReachableCells, type ReachableCell } from "./pathfinding.js";

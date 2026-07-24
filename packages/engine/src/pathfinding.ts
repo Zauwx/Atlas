@@ -9,7 +9,7 @@ import {
   livingUnitAt,
 } from "./board.js";
 import type { RuleModifierRegistry } from "./rules.js";
-import { canUnitMove, effectiveClimbCost } from "./rules.js";
+import { canUnitClimb, canUnitMove, effectiveClimbCost } from "./rules.js";
 
 /**
  * Deterministic reachable-cell computation (uniform-cost search).
@@ -37,6 +37,7 @@ export function computeReachableCells(
   }
 
   const budget = unit.currentMovementPoints;
+  const climbAllowed = canUnitClimb(registry, unit);
   const bestCost = new Map<number, number>();
   const startIndex = unit.position.y * state.mapWidth + unit.position.x;
   bestCost.set(startIndex, 0);
@@ -73,6 +74,9 @@ export function computeReachableCells(
       }
       const climb = cell.z - fromZ;
       if (climb > state.config.physics.maxClimbHeightWithoutAbility) {
+        continue;
+      }
+      if (climb > 0 && !climbAllowed) {
         continue;
       }
       const baseClimbCost =

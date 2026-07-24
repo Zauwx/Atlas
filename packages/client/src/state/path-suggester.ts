@@ -29,7 +29,7 @@ function keyOf(x: number, y: number): string {
   return `${String(x)},${String(y)}`;
 }
 
-function explore(view: MatchView, unit: UnitView): Map<string, Node> {
+function explore(view: MatchView, unit: UnitView, canClimb: boolean): Map<string, Node> {
   const nodes = new Map<string, Node>();
   const startKey = keyOf(unit.position.x, unit.position.y);
   nodes.set(startKey, { x: unit.position.x, y: unit.position.y, cost: 0, parentKey: null });
@@ -67,6 +67,9 @@ function explore(view: MatchView, unit: UnitView): Map<string, Node> {
       if (climb > physics.maxClimbHeightWithoutAbility) {
         continue;
       }
+      if (climb > 0 && !canClimb) {
+        continue;
+      }
       const climbCost = climb > 0 ? climb * physics.climbMovementPointCostPerLevel : 0;
       const nextCost = current.cost + 1 + climbCost;
       if (nextCost > unit.movementPoints) {
@@ -88,8 +91,8 @@ export interface ReachableCell {
   readonly movementPointCost: number;
 }
 
-export function reachableCells(view: MatchView, unit: UnitView): ReachableCell[] {
-  const nodes = explore(view, unit);
+export function reachableCells(view: MatchView, unit: UnitView, canClimb = true): ReachableCell[] {
+  const nodes = explore(view, unit, canClimb);
   const result: ReachableCell[] = [];
   for (const node of nodes.values()) {
     if (node.cost === 0) {
@@ -110,8 +113,9 @@ export function suggestPath(
   unit: UnitView,
   targetX: number,
   targetY: number,
+  canClimb = true,
 ): CellCoord[] | null {
-  const nodes = explore(view, unit);
+  const nodes = explore(view, unit, canClimb);
   const targetNode = nodes.get(keyOf(targetX, targetY));
   if (targetNode === undefined || targetNode.cost === 0) {
     return null;

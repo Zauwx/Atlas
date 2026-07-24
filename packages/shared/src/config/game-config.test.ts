@@ -44,11 +44,16 @@ describe("BASELINE_GAME_CONFIG (rulebook-decided values only)", () => {
 });
 
 describe("findGameConfigReferenceErrors", () => {
-  it("reports a terrain referencing an unknown state", () => {
+  it("reports every terrain referencing an unknown state", () => {
     const broken = { ...BASELINE_GAME_CONFIG, states: [] };
     const errors = findGameConfigReferenceErrors(broken);
-    expect(errors).toHaveLength(1);
-    expect(errors[0]).toContain("unknown applied state");
+    const terrainsApplyingStates = BASELINE_GAME_CONFIG.terrains.filter(
+      (terrain) => terrain.appliedStateIds.length > 0,
+    );
+    expect(errors).toHaveLength(terrainsApplyingStates.length);
+    for (const error of errors) {
+      expect(error).toContain("unknown applied state");
+    }
   });
 
   it("reports duplicate ids", () => {

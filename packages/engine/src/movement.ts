@@ -3,7 +3,7 @@ import type { MatchState, UnitRuntime } from "./match-state.js";
 import { cellAt, isInBounds, livingUnitAt, unitById } from "./board.js";
 import { applyFall } from "./fall.js";
 import type { RuleModifierRegistry } from "./rules.js";
-import { canUnitMove, effectiveClimbCost } from "./rules.js";
+import { canUnitClimb, canUnitMove, effectiveClimbCost } from "./rules.js";
 import { applyTerrainOnEnter } from "./terrain.js";
 
 /**
@@ -70,6 +70,10 @@ export function tryMove(
     const climb = cell.z - current.z;
     if (climb > state.config.physics.maxClimbHeightWithoutAbility) {
       return { ok: false, code: "ClimbTooHigh" };
+    }
+    // Frozen-style states forbid climbing outright (rulebook: States).
+    if (climb > 0 && !canUnitClimb(registry, unit)) {
+      return { ok: false, code: "ClimbBlocked" };
     }
     const baseClimbCost =
       climb > 0 ? climb * state.config.physics.climbMovementPointCostPerLevel : 0;

@@ -9,7 +9,7 @@ const TERRAIN_COLORS: Readonly<Record<string, number>> = {
   normal: 0x8a9a7b,
   water: 0x3d6fb4,
   ice: 0xa8d8e8,
-  vegetation: 0x4a7a3a,
+  vegetation: 0x2f5d2a,
   earth: 0x8a6a4a,
   lava: 0xc4502a,
   void: 0x14141c,
