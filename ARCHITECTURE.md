@@ -168,6 +168,7 @@ Module rules:
 - Modules communicate through explicit interfaces; no module reaches into another's internals.
 - The resolution pipeline order is owned by COMBAT_RULEBOOK.md; code follows the document, never the reverse.
 - Rule priority (Global → Stance → Terrain → States → Spell → Temporary effects) is implemented as a single, explicit resolution mechanism — never as scattered `if` statements inside spells.
+- **Rule modifiers**: stances and states change engine behavior through a typed hook registry. A stance/state config references engine-registered hooks by its own ID; the engine consults active hooks at defined decision points (movement legality, push distance, …). Adding a stance or state's behavior = registering hooks + a rulebook entry — never editing resolution code.
 - All randomness-free; if a mechanic ever explicitly introduces randomness, it must use a seeded, replayable RNG owned by the simulation.
 
 ---

@@ -81,6 +81,10 @@ All consequences are then defined by **Wet**, not by Water.
 
 Terrain types (initial set): Normal, Water, Ice, Vegetation, Earth, Lava, Void.
 
+- A terrain applies its configured states to a unit **each time the unit enters the cell** (voluntarily or by forced movement).
+- The duration of terrain-applied states is a configuration value per terrain (`appliedStateDurationRounds`), never a code constant.
+- A terrain may be configured as `bottomless` (see Falls → Void).
+
 ---
 
 ## Round Structure
@@ -96,6 +100,15 @@ A match is a sequence of **rounds**. Each round proceeds in this exact order:
 7. Units act in **alternating turns**, one unit at a time, in initiative order.
 8. When every unit has acted, end-of-round effects trigger (state durations tick and expire, periodic effects resolve).
 9. Next round begins.
+
+If the configuration defines no stances, steps 3–6 are skipped and the round proceeds directly to unit turns.
+
+### Initiative
+
+- Players alternate unit activations: player A's next unit, then player B's next unit, and so on.
+- Which player activates first rotates every round (round 1: first player in join order; round 2: second; …).
+- Within one player, units act in a fixed order: their creation order at match setup.
+- Dead units are skipped. If one player has more units than the other, their remaining units act in sequence at the end of the round.
 
 ### Unit Turns
 
@@ -124,20 +137,25 @@ Movement is performed cell by cell along an orthogonal path.
 
 - Climbing **+1 z**: costs **+1 MP** in addition to the normal cost of entering the cell.
 - Climbing **+2 z or more** in one step: **forbidden**, unless an ability explicitly allows it.
-- Descending: **free** (no additional MP cost). Descents larger than the safe threshold are resolved by the fall rules.
+- Descending costs no additional MP.
+- Voluntarily stepping down **1 z** is safe.
+- Voluntarily stepping down **2 z or more** is allowed, but the step is resolved as a **fall**: the unit takes fall damage on landing, then may continue its movement if still alive.
 - **Forced movement ignores MP costs.**
 
 ---
 
 ## Line of Sight
 
-The server computes line of sight. The computation takes into account:
+The server computes line of sight. No line-of-sight computation is ever performed client-side for gameplay purposes.
 
-- the relief (z differences)
-- obstacles
-- units, where a rule says they block
+The official algorithm (**max-endpoint rule**):
 
-No line-of-sight computation is ever performed client-side for gameplay purposes.
+1. Trace the straight segment between the centers of the source cell and the target cell on the (x, y) plane.
+2. Every cell the segment touches, excluding the source and target cells, is a **crossed** cell. When the segment passes exactly through a cell corner, **both** adjacent cells are crossed (no diagonal peeking).
+3. A crossed cell **blocks** line of sight if its height satisfies: `z ≥ max(source z, target z) + 1`.
+4. Line of sight exists if and only if no crossed cell blocks.
+
+Units do not block line of sight (no rule currently says they do; changing this requires updating this section).
 
 ---
 
@@ -178,10 +196,16 @@ Every action resolves in this exact order:
 
 ## Pushes
 
-A push moves a unit cell by cell.
+A push moves a unit cell by cell along one orthogonal direction.
 
 - Each traversed cell is validated individually by the server.
 - A push can cause: a collision, a fall, or entry onto a terrain (which applies its states).
+
+Resolution per cell, in push order:
+
+- **Next cell is out of bounds, occupied by a unit, or higher (+1 z or more):** the push stops there and a **collision** occurs.
+- **Next cell is at the same height:** the unit enters it (terrain applies its states) and the push continues.
+- **Next cell is lower (−1 z or more):** the unit is shoved over the edge and **falls** into that cell. The push ends at the landing cell; the remaining push distance is lost **without** collision damage (the push was ended by a fall, not by an obstacle).
 
 ---
 
@@ -201,6 +225,13 @@ A fall begins when no cell supports the unit.
 - The fall stops at the first valid ground below.
 - Damage: **(z_start − z_end) × 15 HP**.
 - Fall damage is computed exactly once per fall.
+
+### Void
+
+Void terrain is **bottomless** (configured via the terrain's `bottomless` flag — no ad-hoc handling):
+
+- A unit that enters Void — pushed, falling, or moving voluntarily — **dies** at the death-check step of the current resolution, regardless of remaining HP.
+- No Fall event and no damage number are produced; the unit's removal is reported by the Death event.
 
 ---
 
@@ -292,6 +323,10 @@ Victory conditions are checked **after** eliminated units are removed (pipeline 
 
 The engine never checks victory during a resolution.
 
+- A player is eliminated when they have no living units.
+- If exactly one player remains, that player wins.
+- If a single resolution eliminates every remaining player simultaneously, the match is a **draw**: the Victory event carries no winner.
+
 ---
 
 ## Determinism
@@ -353,7 +388,13 @@ Events reflect only actions already validated and resolved by the server. **The 
 
 Every ambiguous rule must be documented in this section. No implicit decision is allowed.
 
-_(No edge cases recorded yet. Candidates awaiting decisions are listed under Open Questions.)_
+- **State re-application:** applying a state a unit or cell already has replaces the remaining duration with the new one (no stacking).
+- **Heal resolution:** heal effects resolve at pipeline step 11, alongside direct damage.
+- **Unit-targeted effects on an empty cell:** Damage, Heal, and Push effects fizzle (no event) if no unit occupies the target cell. ApplyState falls back to applying the state to the **cell** itself.
+- **Push targeting:** a push effect requires the target cell to be axis-aligned with the caster (same row or column) and distinct from the caster's cell; otherwise the cast is rejected as InvalidTarget. The push direction is caster → target.
+- **Terrain transformation under a unit:** the new terrain immediately applies its configured states to the occupant. Transforming the ground under a unit into a bottomless terrain makes the unit fall to its death.
+- **Active unit dies during its own action** (e.g. voluntary fall): after the resolution completes, its turn ends automatically.
+- **Walking through terrain:** every cell entered during movement applies its terrain states — passing through Water makes a unit Wet even if it does not stop there.
 
 ---
 
@@ -374,14 +415,11 @@ The following invariants must never be violated:
 
 ## Open Questions
 
-- **Initiative order:** how is the acting order of units determined each round (fixed stat, alternating by player, stance-influenced)? Required before Phase 3.
-- **Safe descent threshold:** descending is free, but from which height difference does a voluntary descent become a fall (with fall damage)? E.g., is stepping down −1 z always safe, and −2 z a fall?
-- **Line-of-sight algorithm:** exact cell-tracing rule (which grid line algorithm, how corners and partial cover behave, how z differences translate into blocking). Required before Phase 3.
-- **Push interruption by height:** what height difference blocks a push (causing collision) vs. lets the unit be pushed off an edge (causing a fall)?
-- **Void terrain:** what happens to a unit pushed onto Void — infinite fall (death), fall to z 0, or something else?
-- **Simultaneous deaths:** if the last units of both players die in the same resolution, is the result a draw, or does a priority rule decide the winner?
+- **Collision damage to the blocking unit:** when a push is interrupted by another unit, does the blocker also take damage? (Currently: only the pushed unit takes collision damage.)
+- **Area-of-effect spells:** the current pipeline targets a single cell. AoE shapes (cross, circle, line) are not yet specified.
 - **Turn timers:** duration of stance selection and of a unit turn; behavior on timeout (auto-pass, default stance).
 - **Stance visibility after reveal:** does the revealed stance remain visible for the whole round?
 - **AP/MP/HP baseline values:** per-class values are configuration, tracked by [BALANCE_GUIDELINES.md](BALANCE_GUIDELINES.md); the rulebook only fixes the mechanics.
 - **Healing and Shielded interaction:** does Shielded absorb damage before or after elemental computation (pipeline steps 11–12)?
-- **Frozen / Rooted exact effects:** precise rule modifications for each initial state must be specified before Phase 3 configuration work.
+- **Exact effects of the initial states** (Wet, Burning, Frozen, Electrified, Shielded, Rooted): precise rule modifications must be specified (and added here) before any of them is implemented as an engine rule. The engine's rule-modifier mechanism ships in Phase 3; the content ships once decided.
+- **Elemental interaction table** (e.g. Fire on a Wet unit, Lightning on Water terrain): interactions flow through states/terrain rules; the concrete table is undecided. The propagation step is a no-op until it exists.
