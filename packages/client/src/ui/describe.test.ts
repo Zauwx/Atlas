@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  PlayerIdSchema,
   SPELL_ID_DRENCH,
   SPELL_ID_FLOOD,
   SPELL_ID_SHOVE,
   SPELL_ID_WATER_JET,
+  STANCE_ID_IRON,
+  STANCE_ID_STORM,
   V1_GAME_CONFIG,
 } from "@atlas/shared";
-import { describeSpell, describeSpellEffects } from "./describe.js";
+import { describeRevealedStances, describeSpell, describeSpellEffects } from "./describe.js";
 
 const spellById = (id: string) => {
   const spell = V1_GAME_CONFIG.spells.find((candidate) => candidate.id === id);
@@ -53,5 +56,62 @@ describe("spell descriptions (built from configuration, never hardcoded)", () =>
       expect(text).toContain(spell.name);
       expect(text).not.toContain("undefined");
     }
+  });
+});
+
+describe("revealed stances (rulebook: Visibility after reveal)", () => {
+  const me = PlayerIdSchema.parse("p1");
+  const them = PlayerIdSchema.parse("p2");
+
+  it("shows nothing before the reveal, so the secret choice never leaks", () => {
+    expect(
+      describeRevealedStances(
+        [
+          { playerId: me, revealedStanceId: null },
+          { playerId: them, revealedStanceId: null },
+        ],
+        me,
+        V1_GAME_CONFIG,
+      ),
+    ).toBe("");
+  });
+
+  it("names both stances by their display name once revealed", () => {
+    expect(
+      describeRevealedStances(
+        [
+          { playerId: me, revealedStanceId: STANCE_ID_STORM },
+          { playerId: them, revealedStanceId: STANCE_ID_IRON },
+        ],
+        me,
+        V1_GAME_CONFIG,
+      ),
+    ).toBe("Stances — You: Storm Stance · Opponent: Iron Stance");
+  });
+
+  it("reports one side alone when only that side has revealed", () => {
+    expect(
+      describeRevealedStances(
+        [
+          { playerId: me, revealedStanceId: null },
+          { playerId: them, revealedStanceId: STANCE_ID_IRON },
+        ],
+        me,
+        V1_GAME_CONFIG,
+      ),
+    ).toBe("Stances — Opponent: Iron Stance");
+  });
+
+  it("lists each opposing player once, not once per unit", () => {
+    expect(
+      describeRevealedStances(
+        [
+          { playerId: them, revealedStanceId: STANCE_ID_IRON },
+          { playerId: them, revealedStanceId: STANCE_ID_IRON },
+        ],
+        me,
+        V1_GAME_CONFIG,
+      ),
+    ).toBe("Stances — Opponent: Iron Stance");
   });
 });

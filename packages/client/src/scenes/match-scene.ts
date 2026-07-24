@@ -286,10 +286,13 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
         return;
       }
       case "StanceRevealed": {
+        const stanceName =
+          this.view.config.stances.find((stance) => stance.id === event.stanceId)?.name ??
+          event.stanceId;
         this.hud.showMessage(
           event.playerId === this.myPlayerId
-            ? "Your stance is revealed."
-            : "Opponent stance revealed!",
+            ? `You revealed ${stanceName}.`
+            : `Opponent revealed ${stanceName}!`,
         );
         this.time.delayedCall(200, done);
         return;

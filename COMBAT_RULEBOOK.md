@@ -291,6 +291,12 @@ A stance can:
 - modify a fall
 - modify certain spell resolutions
 
+### Visibility after reveal
+
+Once revealed, a stance stays **visible to all players for the remainder of the round**. It is cleared when the next round begins, before the next secret selection.
+
+Secrecy applies only to the choice, not to its consequences: a stance modifies rules that players can already observe in play, so hiding it after reveal would obscure why an action resolved the way it did.
+
 ### V1 stances
 
 The prototype ships three global stances (available to every class):
@@ -460,7 +466,6 @@ The following invariants must never be violated:
 
 - **Collision damage to the blocking unit:** when a push is interrupted by another unit, does the blocker also take damage? (Currently: only the pushed unit takes collision damage.)
 - **Area-of-effect spells:** the current pipeline targets a single cell. AoE shapes (cross, circle, line) are not yet specified.
-- **Stance visibility after reveal:** does the revealed stance remain visible for the whole round?
 - **AP/MP/HP baseline values:** per-class values are configuration, tracked by [BALANCE_GUIDELINES.md](BALANCE_GUIDELINES.md); the rulebook only fixes the mechanics.
 - **Healing and Shielded interaction:** does Shielded absorb damage before or after elemental computation (pipeline steps 11–12)?
 - **Exact effects of the remaining initial states** (Burning, Frozen, Electrified, Shielded, Rooted): precise rule modifications must be specified (and added here) before any of them is implemented as an engine rule. Wet is defined (see States).

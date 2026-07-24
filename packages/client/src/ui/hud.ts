@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { GameConfig, PlayerId, SpellId, StanceId } from "@atlas/shared";
 import type { MatchView, UnitView } from "../state/match-view.js";
-import { describeSpell } from "./describe.js";
+import { describeRevealedStances, describeSpell } from "./describe.js";
 
 /**
  * Minimal in-canvas HUD: status readout, stance panel, spell bar, End Turn
@@ -189,6 +189,7 @@ export class Hud {
         ? "You have no living unit."
         : `HP ${String(myUnit.healthPoints)}/${String(myUnit.maxHealthPoints)}   AP ${String(myUnit.actionPoints)}   MP ${String(myUnit.movementPoints)}`,
       this.describeUnitStates(myUnit),
+      describeRevealedStances(view.units, myPlayerId, this.config),
       view.phase === "UnitTurns"
         ? view.activeUnitId === null
           ? ""
@@ -234,7 +235,6 @@ export class Hud {
         element.setVisible(showStances);
       }
     }
-    void myPlayerId;
   }
 
   /** Active states matter to every decision, so they are always on screen. */

@@ -1,4 +1,11 @@
-import type { GameConfig, SpellConfig, StateId, TerrainId } from "@atlas/shared";
+import type {
+  GameConfig,
+  PlayerId,
+  SpellConfig,
+  StanceId,
+  StateId,
+  TerrainId,
+} from "@atlas/shared";
 
 /**
  * Turns configuration into player-readable text — GAME_DESIGN.md
@@ -34,6 +41,48 @@ export function describeSpellEffects(spell: SpellConfig, config: GameConfig): st
     }
   });
   return parts.join(", ");
+}
+
+export interface RevealedStanceHolder {
+  readonly playerId: PlayerId;
+  readonly revealedStanceId: StanceId | null;
+}
+
+/**
+ * Revealed stances for the current round — COMBAT_RULEBOOK.md "Visibility
+ * after reveal": once revealed, a stance stays visible for the rest of the
+ * round. Empty string before the reveal, so nothing leaks during the
+ * secret selection.
+ */
+export function describeRevealedStances(
+  holders: readonly RevealedStanceHolder[],
+  myPlayerId: PlayerId,
+  config: GameConfig,
+): string {
+  const nameOfStance = (stanceId: StanceId): string =>
+    config.stances.find((stance) => stance.id === stanceId)?.name ?? stanceId;
+
+  let mine: string | null = null;
+  const opponents = new Map<PlayerId, string>();
+  for (const holder of holders) {
+    if (holder.revealedStanceId === null) {
+      continue;
+    }
+    if (holder.playerId === myPlayerId) {
+      mine ??= nameOfStance(holder.revealedStanceId);
+    } else if (!opponents.has(holder.playerId)) {
+      opponents.set(holder.playerId, nameOfStance(holder.revealedStanceId));
+    }
+  }
+
+  const segments: string[] = [];
+  if (mine !== null) {
+    segments.push(`You: ${mine}`);
+  }
+  if (opponents.size > 0) {
+    segments.push(`Opponent: ${[...opponents.values()].join(", ")}`);
+  }
+  return segments.length === 0 ? "" : `Stances — ${segments.join(" · ")}`;
 }
 
 /** e.g. "Water Jet — 3 AP · range 1-4 · line of sight · 15 Water damage, push 1" */

@@ -324,7 +324,6 @@ After Prototype V1, the engine must allow adding — without any engine rework:
 
 ## Open Questions
 
-- **Stance visibility after reveal:** once revealed, does the stance stay visible to the opponent for the whole round?
 - **Team sizes beyond 1v1:** the prototype is 1v1; are 2v2+ modes part of the design horizon, and do they change stance selection (per player or per unit)?
 - **Units per player:** one unit per player, or squads? (The prototype implies one; the rulebook is written to support either.)
 - **Turn timers:** time budget per stance selection and per unit turn.
