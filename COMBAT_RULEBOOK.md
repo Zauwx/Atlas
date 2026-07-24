@@ -315,7 +315,9 @@ All iteration orders over collections in gameplay code must be explicit and stab
 
 ## Event Journal
 
-Every action produces events. Event vocabulary:
+Every action produces events.
+
+Combat event vocabulary:
 
 - Move
 - Push
@@ -328,6 +330,13 @@ Every action produces events. Event vocabulary:
 - TerrainChanged
 - Death
 - Victory
+
+Flow event vocabulary (match structure, no combat resolution of their own):
+
+- RoundStarted — a new round begins (carries the round number).
+- StanceRevealed — the simultaneous stance reveal (see Round Structure, step 5). Emitted to all players at the same simulation step; this is the only way stance information ever reaches a client.
+- TurnStarted — a unit's turn begins.
+- TurnEnded — a unit's turn ends.
 
 These events serve:
 

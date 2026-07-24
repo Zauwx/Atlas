@@ -102,11 +102,12 @@ The repository is an npm-workspaces monorepo (set up in Phase 1):
 ```
 packages/
   client/   # Phaser 3 + Vite + TypeScript — rendering, input, UI only
-  server/   # Node.js + TypeScript + Colyseus — rooms, validation, simulation
-  shared/   # Types, DTOs, enums, schemas, game configuration, deterministic rules
+  server/   # Node.js + TypeScript + Colyseus — rooms, validation, simulation hosting
+  engine/   # Pure deterministic gameplay engine (created in Phase 3)
+  shared/   # Types, DTOs, enums, schemas, game configuration — contracts only, no logic
 ```
 
-Dependency direction: `client → shared ← server`. The client and server never import from each other.
+Dependency direction: `client → shared ← engine ← server`. The client and server never import from each other; `shared` contains no logic.
 
 ---
 

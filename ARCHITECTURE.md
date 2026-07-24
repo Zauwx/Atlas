@@ -25,14 +25,15 @@ Every technical decision must prioritize:
 
 ## Tech Stack
 
-| Layer    | Technology                                                                   |
-| -------- | ---------------------------------------------------------------------------- |
-| Monorepo | npm workspaces                                                               |
-| Server   | Node.js, TypeScript, Colyseus                                                |
-| Client   | Phaser 3, Vite, TypeScript                                                   |
-| Shared   | TypeScript (types, DTOs, enums, schemas, configuration, deterministic rules) |
-| Testing  | Vitest (single root runner for all packages)                                 |
-| CI       | GitHub Actions (format check → lint → build → test)                          |
+| Layer      | Technology                                                                   |
+| ---------- | ---------------------------------------------------------------------------- |
+| Monorepo   | npm workspaces                                                               |
+| Server     | Node.js, TypeScript, Colyseus                                                |
+| Client     | Phaser 3, Vite, TypeScript                                                   |
+| Shared     | TypeScript (types, DTOs, enums, schemas, configuration, deterministic rules) |
+| Testing    | Vitest (single root runner for all packages)                                 |
+| CI         | GitHub Actions (format check → lint → build → test)                          |
+| Validation | Zod (runtime schemas for intents and configuration, types inferred)          |
 
 ---
 
@@ -41,19 +42,23 @@ Every technical decision must prioritize:
 ```
 packages/
   client/   # Rendering, input, animations, UI, client-side prediction
-  server/   # Colyseus rooms, networking, validation, authoritative simulation
-  shared/   # Types, DTOs, enums, schemas, game configuration, deterministic rule data
+  server/   # Colyseus rooms, networking, validation, simulation hosting
+  engine/   # Pure deterministic gameplay engine (created in Phase 3)
+  shared/   # Types, DTOs, enums, schemas, game configuration
 ```
 
 ### Dependency Direction
 
 ```
-client ──▶ shared ◀── server
+client ──▶ shared ◀── engine ◀── server
+   └────────────────────┘ (allowed later, for prediction/replay verification)
 ```
 
-- `client` and `server` both depend on `shared`.
+- `shared` depends on nothing else in the workspace. It contains **contracts only** — no logic.
+- `engine` depends only on `shared`. It is pure: no Colyseus, no Phaser, no I/O.
+- `server` depends on `engine` and `shared`; it hosts the simulation.
+- `client` depends on `shared`; it may later depend on `engine` for client-side prediction and browser replay verification — never on `server`.
 - `client` and `server` **never** import from each other.
-- `shared` depends on nothing else in the workspace.
 - No circular dependencies anywhere, at package level or module level.
 
 ### Package Responsibilities
@@ -65,7 +70,14 @@ client ──▶ shared ◀── server
 - Schemas for validating intents and configuration files.
 - Game configuration: classes, spells, terrain, elements, status effects, stances, physics constants.
 - Deterministic rule data used identically by simulation and (later) client prediction.
-- **No gameplay execution logic in Phase 2.** The gameplay engine itself is a Phase 3 deliverable (its home package is an Open Question below).
+- Runtime validation schemas (Zod): every schema is the single source of truth for both the validator and the inferred TypeScript type, so contract and validation can never drift apart.
+- **No gameplay execution logic.** The gameplay engine is a Phase 3 deliverable living in the dedicated `engine` package.
+
+**`engine`** _(created in Phase 3)_
+
+- The complete deterministic gameplay simulation, as pure TypeScript modules (see "Gameplay Engine Modules" below).
+- Depends only on `shared`. No networking, no rendering, no I/O, no framework imports.
+- Consumed by `server` to resolve matches, and later importable by `client` for prediction and replay verification.
 
 **`server`**
 
@@ -131,7 +143,7 @@ Stance choices are the signature mechanic and receive special networking treatme
 
 ## Gameplay Engine Modules (Phase 3)
 
-The gameplay engine is a set of **pure, render-free, I/O-free TypeScript modules**. Each module implements a section of the rulebook and is unit-tested against it.
+The gameplay engine lives in the dedicated `engine` package (created in Phase 3) as a set of **pure, render-free, I/O-free TypeScript modules**. Each module implements a section of the rulebook and is unit-tested against it.
 
 | Module             | Responsibility                                                   |
 | ------------------ | ---------------------------------------------------------------- |
@@ -187,7 +199,6 @@ Each phase ends with a summary, open questions, and an explicit stop for approva
 
 ## Open Questions
 
-- **Gameplay engine package location (Phase 3):** should the pure engine live inside `packages/server`, inside `packages/shared`, or in a dedicated `packages/engine`? A dedicated package keeps `shared` free of logic and lets a future client-side prediction reuse the exact simulation code. Decision needed before Phase 3.
 - **State synchronization strategy:** use Colyseus `Schema` for continuous state sync, or rely purely on the ordered event stream with a full-state snapshot on join/reconnect? (Event-stream-first fits determinism and replays; Colyseus Schema fits the framework's tooling.) Decision needed before Phase 4.
 - **Turn timer enforcement:** timer values and what happens on timeout (auto-pass? default stance?) — gameplay decision needed before Phase 4.
 - **Reconnection policy:** how long a disconnected player's session is held, and what opponents see. Decision needed before Phase 4.
