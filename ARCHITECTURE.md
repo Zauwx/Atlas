@@ -137,7 +137,13 @@ Stance choices are the signature mechanic and receive special networking treatme
 
 **Event-stream-first.** Colyseus provides rooms, transport, and messaging only — no `Schema` state synchronization. Clients are driven by the ordered event stream (the same data as replays and future spectator mode) plus a full `MatchSnapshot` on join and reconnect. One synchronization model everywhere; stance secrecy is structural because nothing is auto-synced.
 
-The room protocol (message names and payload schemas) is defined in `shared` (`room-messages.ts`); every payload has a Zod schema.
+The room protocol (message names and payload schemas) is defined in `shared` (`room-messages.ts`); every payload has a Zod schema. At match start (and on reconnect) the server also sends the active `GameConfig`, so clients can render spell costs, ranges, class baselines, and stance lists without hardcoding content.
+
+### Client Rendering Decisions (Phase 5)
+
+- **Pure event playback, no prediction in V1.** The client animates only server-emitted events; between intent and response it simply waits. Prediction can be added later by importing the `engine` package — the dependency direction already allows it.
+- **Isometric 2.5D projection.** Diamond tiles with height drawn as extruded terraces, so verticality is physically visible. Projection and depth-sorting are pure, tested functions.
+- The client keeps a display-only view state (positions, HP, resources) folded from snapshot + events. It contains no rules; any drift is corrected by the next snapshot. The client-side path suggestion used for movement input is a UI convenience — the server remains the sole validator.
 
 ### Timers and Disconnects (Phase 4, provisional values)
 
@@ -214,4 +220,4 @@ Each phase ends with a summary, open questions, and an explicit stop for approva
 
 - **Durable replay storage:** replays are assembled in memory (setup + event log) and handed to a store interface; a durable backend (files, database) and a replay browser are undecided.
 - **Matchmaking:** Phase 4 ships a single self-contained match room; queueing, rankings, and lobbies are future work.
-- **Client prediction scope (Phase 5):** whether V1 ships with any prediction at all, or pure event playback. Pure playback is simpler and always correct; prediction improves feel.
+- **Client prediction (post-V1):** V1 ships pure event playback; engine-backed prediction of the player's own actions is future work.

@@ -66,6 +66,9 @@ export class MatchCoordinator {
   }
 
   start(): void {
+    // Config first, then snapshot: clients need content metadata (spells,
+    // classes, stances) before they can interpret the snapshot.
+    this.messenger.broadcast(RoomMessageType.Config, this.config);
     this.messenger.broadcast(RoomMessageType.Snapshot, this.simulation.getSnapshot());
     this.refreshTimers();
   }
@@ -130,6 +133,7 @@ export class MatchCoordinator {
       return;
     }
     this.messenger.broadcast(RoomMessageType.PlayerConnection, { playerId, connected: true });
+    this.messenger.sendToPlayer(playerId, RoomMessageType.Config, this.config);
     this.messenger.sendToPlayer(playerId, RoomMessageType.Snapshot, this.simulation.getSnapshot());
   }
 

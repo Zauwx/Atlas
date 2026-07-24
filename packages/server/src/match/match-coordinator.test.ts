@@ -71,11 +71,15 @@ function eventsIn(messenger: RecordingMessenger): GameEvent[] {
 }
 
 describe("MatchCoordinator: protocol", () => {
-  it("broadcasts the initial snapshot on start", () => {
+  it("broadcasts the config, then the initial snapshot, on start", () => {
     const { messenger } = createHarness();
     const snapshots = messenger.ofType("snapshot");
     expect(snapshots).toHaveLength(1);
     expect(snapshots[0]?.kind).toBe("broadcast");
+    const configIndex = messenger.messages.findIndex((message) => message.type === "config");
+    const snapshotIndex = messenger.messages.findIndex((message) => message.type === "snapshot");
+    expect(configIndex).toBeGreaterThanOrEqual(0);
+    expect(configIndex).toBeLessThan(snapshotIndex);
   });
 
   it("acks accepted intents to the sender and broadcasts the event batch", () => {

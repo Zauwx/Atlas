@@ -17,6 +17,8 @@ export const RoomMessageType = {
   Intent: "intent",
   /** Server → one client: your player id for this match. */
   Assignment: "assignment",
+  /** Server → clients: the active GameConfig (match start, reconnect). */
+  Config: "config",
   /** Server → all clients: full MatchSnapshot (match start, reconnect). */
   Snapshot: "snapshot",
   /** Server → all clients: ordered GameEvent batch from one resolution. */
