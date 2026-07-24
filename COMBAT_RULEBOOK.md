@@ -395,6 +395,8 @@ Every ambiguous rule must be documented in this section. No implicit decision is
 - **Terrain transformation under a unit:** the new terrain immediately applies its configured states to the occupant. Transforming the ground under a unit into a bottomless terrain makes the unit fall to its death.
 - **Active unit dies during its own action** (e.g. voluntary fall): after the resolution completes, its turn ends automatically.
 - **Walking through terrain:** every cell entered during movement applies its terrain states — passing through Water makes a unit Wet even if it does not stop there.
+- **No pass-through:** a unit cannot traverse a cell occupied by another unit, during movement or pushes (one unit per cell holds at every instant).
+- **Physics damage events:** Collision and Fall events carry their own damage amount; they do not emit an additional Damage event. The Damage event is reserved for spell damage (pipeline steps 11–12).
 
 ---
 

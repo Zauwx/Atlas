@@ -37,3 +37,6 @@ export type StateId = z.infer<typeof StateIdSchema>;
 
 export const StanceIdSchema = idString.brand<"StanceId">();
 export type StanceId = z.infer<typeof StanceIdSchema>;
+
+export const MapIdSchema = idString.brand<"MapId">();
+export type MapId = z.infer<typeof MapIdSchema>;

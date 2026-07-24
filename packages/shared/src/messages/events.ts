@@ -107,10 +107,10 @@ export const DeathEventSchema = z.object({
 export const VictoryEventSchema = z.object({
   type: z.literal("Victory"),
   /**
-   * Winner of the match. Draw handling is an open rulebook question
-   * (simultaneous deaths); this schema will be revised when it is decided.
+   * Winner of the match; null is a draw (COMBAT_RULEBOOK.md "Victory":
+   * a resolution eliminating every remaining player simultaneously).
    */
-  winnerPlayerId: PlayerIdSchema,
+  winnerPlayerId: PlayerIdSchema.nullable(),
 });
 
 // --- Flow events (rulebook flow vocabulary) ---

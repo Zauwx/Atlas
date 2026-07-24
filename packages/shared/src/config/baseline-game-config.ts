@@ -4,8 +4,9 @@ import { RULEBOOK_PHYSICS } from "./physics-config.js";
 
 /**
  * Baseline configuration containing ONLY what the rulebook has decided:
- * physics constants, the seven initial terrains, and the Wet state with the
- * Water → Wet wiring (COMBAT_RULEBOOK.md "Terrain").
+ * physics constants, the seven initial terrains (Void bottomless per
+ * "Falls → Void"), and the Wet state with the Water → Wet wiring
+ * (COMBAT_RULEBOOK.md "Terrain").
  *
  * Everything absent is an open question, not an omission: the effects of
  * the remaining initial states, all stances, classes, and spells arrive
@@ -23,6 +24,9 @@ export const TERRAIN_ID_VOID = TerrainIdSchema.parse("void");
 
 export const STATE_ID_WET = StateIdSchema.parse("wet");
 
+/** Provisional duration for terrain-applied states; a balance value to revisit. */
+const DEFAULT_TERRAIN_STATE_DURATION_ROUNDS = 1;
+
 export const BASELINE_GAME_CONFIG: GameConfig = {
   physics: RULEBOOK_PHYSICS,
   terrains: [
@@ -31,42 +35,56 @@ export const BASELINE_GAME_CONFIG: GameConfig = {
       name: "Normal",
       description: "Plain ground with no additional behavior.",
       appliedStateIds: [],
+      appliedStateDurationRounds: DEFAULT_TERRAIN_STATE_DURATION_ROUNDS,
+      bottomless: false,
     },
     {
       id: TERRAIN_ID_WATER,
       name: "Water",
       description: "Applies Wet to units standing in it. All consequences come from Wet.",
       appliedStateIds: [STATE_ID_WET],
+      appliedStateDurationRounds: DEFAULT_TERRAIN_STATE_DURATION_ROUNDS,
+      bottomless: false,
     },
     {
       id: TERRAIN_ID_ICE,
       name: "Ice",
       description: "Behavior pending rulebook decision (open question).",
       appliedStateIds: [],
+      appliedStateDurationRounds: DEFAULT_TERRAIN_STATE_DURATION_ROUNDS,
+      bottomless: false,
     },
     {
       id: TERRAIN_ID_VEGETATION,
       name: "Vegetation",
       description: "Behavior pending rulebook decision (open question).",
       appliedStateIds: [],
+      appliedStateDurationRounds: DEFAULT_TERRAIN_STATE_DURATION_ROUNDS,
+      bottomless: false,
     },
     {
       id: TERRAIN_ID_EARTH,
       name: "Earth",
       description: "Behavior pending rulebook decision (open question).",
       appliedStateIds: [],
+      appliedStateDurationRounds: DEFAULT_TERRAIN_STATE_DURATION_ROUNDS,
+      bottomless: false,
     },
     {
       id: TERRAIN_ID_LAVA,
       name: "Lava",
       description: "Behavior pending rulebook decision (open question).",
       appliedStateIds: [],
+      appliedStateDurationRounds: DEFAULT_TERRAIN_STATE_DURATION_ROUNDS,
+      bottomless: false,
     },
     {
       id: TERRAIN_ID_VOID,
       name: "Void",
-      description: "Absence of ground. Fall behavior pending rulebook decision (open question).",
+      description: "Bottomless. Entering it is death at the death-check step (rulebook: Falls).",
       appliedStateIds: [],
+      appliedStateDurationRounds: DEFAULT_TERRAIN_STATE_DURATION_ROUNDS,
+      bottomless: true,
     },
   ],
   states: [

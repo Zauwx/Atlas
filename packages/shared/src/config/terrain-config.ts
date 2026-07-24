@@ -14,6 +14,16 @@ export const TerrainConfigSchema = z.object({
   description: z.string(),
   /** States this terrain applies (e.g. Water → Wet). Empty when undecided. */
   appliedStateIds: z.array(StateIdSchema),
+  /**
+   * Duration (in rounds) of states applied by this terrain — rulebook
+   * "Terrain": a configuration value, never a code constant.
+   */
+  appliedStateDurationRounds: z.number().int().positive(),
+  /**
+   * Bottomless terrain (rulebook "Falls → Void"): entering it is death at
+   * the death-check step, regardless of HP.
+   */
+  bottomless: z.boolean(),
 });
 
 export type TerrainConfig = z.infer<typeof TerrainConfigSchema>;

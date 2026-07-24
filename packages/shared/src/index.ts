@@ -18,6 +18,7 @@ export * from "./dto/unit-snapshot.js";
 export * from "./dto/cell-snapshot.js";
 export * from "./dto/board-snapshot.js";
 export * from "./dto/match-snapshot.js";
+export * from "./dto/match-setup.js";
 
 export * from "./messages/intents.js";
 export * from "./messages/events.js";
@@ -29,5 +30,6 @@ export * from "./config/terrain-config.js";
 export * from "./config/stance-config.js";
 export * from "./config/spell-config.js";
 export * from "./config/class-config.js";
+export * from "./config/map-config.js";
 export * from "./config/game-config.js";
 export * from "./config/baseline-game-config.js";
