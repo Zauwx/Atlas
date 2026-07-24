@@ -117,10 +117,14 @@ Every new piece of content must pass this checklist **before implementation**:
 
 ---
 
+## V1 Baselines (decided, provisional pending playtests)
+
+- **Vitals:** HP 90–110, AP 6, MP 3–4. Physics damage (10 per collision cell, 15 per fall level) stays meaningful against these pools.
+- **Damage budget:** roughly 5–7 damage per AP for direct-damage spells (e.g. 20 damage at 3 AP), so pushes and falls remain competitive with raw damage.
+- **V1 classes:** Vanguard (HP 110, AP 6, MP 3 — close-range physical control) and Tidecaller (HP 90, AP 6, MP 4 — terrain shaping and Wet setups).
+- **V1 stances:** Iron (incoming pushes −2), Flow (free climbs), Storm (outgoing pushes +1) — exact rules in [COMBAT_RULEBOOK.md](COMBAT_RULEBOOK.md).
+
 ## Open Questions
 
-- **Baseline vitals:** starting HP, AP, and MP ranges per class for V1 (proposal needed, e.g., HP in the 80–120 band so physics damage at 10/15 HP stays meaningful — to be validated).
-- **Damage budget:** target damage-per-AP band for V1 spells, so physics damage (pushes/falls) stays competitive with direct damage.
-- **V1 class identities:** the two prototype classes and their unique mechanics.
-- **V1 stance roster:** the three prototype stances and their exact rule modifications.
 - **Balance cadence:** how often configuration changes ship once external playtesting starts.
+- **Validation of the V1 baselines** above through playtesting.

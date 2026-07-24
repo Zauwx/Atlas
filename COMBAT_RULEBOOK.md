@@ -248,6 +248,12 @@ States never modify statistics directly. They modify the **rules of the engine**
 
 Initial state examples: Wet, Burning, Frozen, Electrified, Shielded, Rooted.
 
+### Defined state effects (V1)
+
+- **Wet** (applied by Water terrain): the unit is slippery — **pushes against a Wet unit travel 1 cell further**. (See Pushes → Push distance resolution.)
+
+The effects of Burning, Frozen, Electrified, Shielded, and Rooted remain open questions; none of them may be implemented before being defined here.
+
 ---
 
 ## Elements
@@ -284,6 +290,30 @@ A stance can:
 - modify a collision
 - modify a fall
 - modify certain spell resolutions
+
+### V1 stances
+
+The prototype ships three global stances (available to every class):
+
+- **Iron Stance**: pushes against you are **2 cells shorter**.
+- **Flow Stance**: climbing **+1 z costs no extra MP**.
+- **Storm Stance**: **your pushes travel 1 cell further**.
+
+### Push distance resolution
+
+The effective distance of a push is computed in this exact order (rule priority: Stance before States; attacker before defender):
+
+1. Start from the effect's base distance.
+2. Apply the **pusher's** stance modifiers (e.g. Storm: +1).
+3. Apply the **pushed unit's** stance modifiers (e.g. Iron: −2).
+4. Apply the **pushed unit's** state modifiers, in application order (e.g. Wet: +1).
+5. Clamp to a minimum of 0 (a push of 0 cells does nothing — no collision).
+
+Modifiers stack: a Storm push against a Wet target travels 2 cells further.
+
+### Climb cost resolution
+
+Stance and state modifiers may change the additional MP cost of climbing (e.g. Flow Stance sets it to 0). The climb height limit itself is unchanged unless a rule explicitly says otherwise.
 
 ---
 
@@ -433,5 +463,5 @@ The following invariants must never be violated:
 - **Stance visibility after reveal:** does the revealed stance remain visible for the whole round?
 - **AP/MP/HP baseline values:** per-class values are configuration, tracked by [BALANCE_GUIDELINES.md](BALANCE_GUIDELINES.md); the rulebook only fixes the mechanics.
 - **Healing and Shielded interaction:** does Shielded absorb damage before or after elemental computation (pipeline steps 11–12)?
-- **Exact effects of the initial states** (Wet, Burning, Frozen, Electrified, Shielded, Rooted): precise rule modifications must be specified (and added here) before any of them is implemented as an engine rule. The engine's rule-modifier mechanism ships in Phase 3; the content ships once decided.
+- **Exact effects of the remaining initial states** (Burning, Frozen, Electrified, Shielded, Rooted): precise rule modifications must be specified (and added here) before any of them is implemented as an engine rule. Wet is defined (see States).
 - **Elemental interaction table** (e.g. Fire on a Wet unit, Lightning on Water terrain): interactions flow through states/terrain rules; the concrete table is undecided. The propagation step is a no-op until it exists.

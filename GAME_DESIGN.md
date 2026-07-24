@@ -324,8 +324,6 @@ After Prototype V1, the engine must allow adding — without any engine rework:
 
 ## Open Questions
 
-- **V1 class identities:** the prototype ships with two classes — which archetypes? Each must showcase a different pillar.
-- **Stance roster:** V1 ships with three stances — which ones, and are they global or per-class?
 - **Stance visibility after reveal:** once revealed, does the stance stay visible to the opponent for the whole round?
 - **Team sizes beyond 1v1:** the prototype is 1v1; are 2v2+ modes part of the design horizon, and do they change stance selection (per player or per unit)?
 - **Units per player:** one unit per player, or squads? (The prototype implies one; the rulebook is written to support either.)
