@@ -18,7 +18,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dev:server": "npm run build && npm run start --workspace @atlas/server",
+    "dev:client": "npm run dev --workspace @atlas/client"
   },
   "devDependencies": {
     "eslint": "^9.20.0",

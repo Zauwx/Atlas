@@ -49,6 +49,18 @@ npm run format    # Prettier
 npm test          # Vitest
 ```
 
+To play a local match (two browser tabs join automatically):
+
+```bash
+npm run dev:server
+```
+
+```bash
+npm run dev:client
+```
+
+Then open http://localhost:5173 in two tabs.
+
 ## Project Status
 
 Development is phase-gated (see [ARCHITECTURE.md](ARCHITECTURE.md#roadmap)):
@@ -58,7 +70,7 @@ Development is phase-gated (see [ARCHITECTURE.md](ARCHITECTURE.md#roadmap)):
 - [x] Phase 2 — Shared package (DTOs, enums, types, schemas, configurations)
 - [x] Phase 3 — Gameplay engine (deterministic, fully unit-tested)
 - [x] Phase 4 — Server (Colyseus rooms, validation, synchronization, replays)
-- [ ] Phase 5 — Client (Phaser rendering, input, UI)
+- [x] Phase 5 — Client (Phaser rendering, input, UI)
 - [ ] Phase 6 — Prototype V1 (playable 1v1 match)
 
 ## Contributing

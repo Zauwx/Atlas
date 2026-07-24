@@ -209,8 +209,8 @@ Module rules:
 | 2     | Shared package: DTOs, enums, types, schemas, configurations (no gameplay)                                                                                                           | Done             |
 | 3     | Gameplay engine: movement, pathfinding, LoS, push, collision, fall, terrain, elements, status effects, stances, turn engine, spell resolution, victory conditions — with unit tests | Done             |
 | 4     | Server: Colyseus, rooms, networking, validation, synchronization, replay foundations                                                                                                | Done             |
-| 5     | Client: Phaser, rendering, input, animations, UI, prediction                                                                                                                        | Pending approval |
-| 6     | Prototype V1: one map, 1v1, two classes, basic terrain, Water + Wet, three stances, minimal UI, playable match                                                                      | —                |
+| 5     | Client: Phaser, rendering, input, animations, UI, prediction                                                                                                                        | Done             |
+| 6     | Prototype V1: one map, 1v1, two classes, basic terrain, Water + Wet, three stances, minimal UI, playable match                                                                      | Pending approval |
 
 Each phase ends with a summary, open questions, and an explicit stop for approval.
 

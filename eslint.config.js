@@ -32,9 +32,9 @@ export default tseslint.config(
       "import-x/no-cycle": "error",
     },
   },
-  // Root tooling configs: syntax-only linting, no type information required.
+  // Tooling configs: syntax-only linting, no type information required.
   {
-    files: ["*.config.ts", "*.config.js", "eslint.config.js"],
+    files: ["*.config.ts", "*.config.js", "eslint.config.js", "packages/*/*.config.ts"],
     extends: [...tseslint.configs.recommended],
   },
   eslintConfigPrettier,
