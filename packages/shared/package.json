@@ -1,0 +1,16 @@
+{
+  "name": "@atlas/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared types, DTOs, enums, schemas, and game configuration for Atlas.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  }
+}
