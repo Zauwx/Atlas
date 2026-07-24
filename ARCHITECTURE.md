@@ -133,6 +133,18 @@ Stance choices are the signature mechanic and receive special networking treatme
 - No stance information reaches any client — including the owning client's opponent — before the simultaneous reveal step.
 - Reveal is an explicit server event, emitted to all players at the same simulation step.
 
+### Synchronization Decision (Phase 4)
+
+**Event-stream-first.** Colyseus provides rooms, transport, and messaging only — no `Schema` state synchronization. Clients are driven by the ordered event stream (the same data as replays and future spectator mode) plus a full `MatchSnapshot` on join and reconnect. One synchronization model everywhere; stance secrecy is structural because nothing is auto-synced.
+
+The room protocol (message names and payload schemas) is defined in `shared` (`room-messages.ts`); every payload has a Zod schema.
+
+### Timers and Disconnects (Phase 4, provisional values)
+
+- Turn and stance timers are enforced by the **server**; the engine stays clock-free. A timeout is translated into an ordinary intent (auto EndTurn; auto ChooseStance repeating the player's previous stance).
+- Disconnection: the seat is held for a grace period (default 60 s, a server option) while timers keep running; the opponent is notified. If the player does not return, the server declares a **forfeit** and the opponent wins.
+- The server core is a transport-agnostic `MatchCoordinator` (validation, timers, forfeit, replay assembly) with injected scheduler and messaging callbacks; the Colyseus `Room` is a thin adapter around it. This keeps the entire server logic unit-testable without sockets.
+
 ### Replay Foundations
 
 - A match replay is the initial match configuration plus the ordered event log.
@@ -200,7 +212,6 @@ Each phase ends with a summary, open questions, and an explicit stop for approva
 
 ## Open Questions
 
-- **State synchronization strategy:** use Colyseus `Schema` for continuous state sync, or rely purely on the ordered event stream with a full-state snapshot on join/reconnect? (Event-stream-first fits determinism and replays; Colyseus Schema fits the framework's tooling.) Decision needed before Phase 4.
-- **Turn timer enforcement:** timer values and what happens on timeout (auto-pass? default stance?) — gameplay decision needed before Phase 4.
-- **Reconnection policy:** how long a disconnected player's session is held, and what opponents see. Decision needed before Phase 4.
+- **Durable replay storage:** replays are assembled in memory (setup + event log) and handed to a store interface; a durable backend (files, database) and a replay browser are undecided.
+- **Matchmaking:** Phase 4 ships a single self-contained match room; queueing, rankings, and lobbies are future work.
 - **Client prediction scope (Phase 5):** whether V1 ships with any prediction at all, or pure event playback. Pure playback is simpler and always correct; prediction improves feel.

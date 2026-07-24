@@ -326,6 +326,17 @@ The engine never checks victory during a resolution.
 - A player is eliminated when they have no living units.
 - If exactly one player remains, that player wins.
 - If a single resolution eliminates every remaining player simultaneously, the match is a **draw**: the Victory event carries no winner.
+- A player who abandons the match (disconnection beyond the server's grace period) **forfeits**: the remaining player wins. Forfeits are declared by the server, not by the engine, and produce no Victory event — the server reports them separately.
+
+---
+
+## Timers
+
+_Provisional values — confirmed defaults pending playtesting; the values are configuration, never code constants._
+
+- **Stance selection**: `timers.stanceSelectionSeconds` (baseline: 30). On expiry, the server locks, for each player who has not chosen, the stance they used the previous round; in round 1 (or if that stance no longer exists), the first configured stance.
+- **Unit turn**: `timers.unitTurnSeconds` (baseline: 45). On expiry, the unit's turn ends automatically.
+- Timers are enforced by the server only. The engine has no wall clock: timeouts reach it as ordinary intents, preserving determinism and replayability.
 
 ---
 
@@ -419,7 +430,6 @@ The following invariants must never be violated:
 
 - **Collision damage to the blocking unit:** when a push is interrupted by another unit, does the blocker also take damage? (Currently: only the pushed unit takes collision damage.)
 - **Area-of-effect spells:** the current pipeline targets a single cell. AoE shapes (cross, circle, line) are not yet specified.
-- **Turn timers:** duration of stance selection and of a unit turn; behavior on timeout (auto-pass, default stance).
 - **Stance visibility after reveal:** does the revealed stance remain visible for the whole round?
 - **AP/MP/HP baseline values:** per-class values are configuration, tracked by [BALANCE_GUIDELINES.md](BALANCE_GUIDELINES.md); the rulebook only fixes the mechanics.
 - **Healing and Shielded interaction:** does Shielded absorb damage before or after elemental computation (pipeline steps 11–12)?
