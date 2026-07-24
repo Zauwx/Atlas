@@ -12,6 +12,7 @@ import type {
   SpellId,
   UnitId,
 } from "@atlas/shared";
+import { hasLineOfSightOverHeights } from "@atlas/engine";
 import type { MatchConnection } from "../net/connection.js";
 import type { MatchSession, SessionSink } from "../net/match-session.js";
 import { MatchView, type UnitView } from "../state/match-view.js";
@@ -509,23 +510,55 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
 
     this.highlightGraphics.clear();
     const activeUnit = this.myActiveUnit();
-    if (activeUnit === null || this.selectedSpellId !== null || this.matchOver) {
+    if (activeUnit === null || this.matchOver) {
       return;
     }
-    for (const reachable of reachableCells(this.view, activeUnit)) {
-      const centerX = isoX(reachable.coord.x, reachable.coord.y);
-      const centerY = isoY(reachable.coord.x, reachable.coord.y, reachable.coord.z);
-      this.highlightGraphics.fillStyle(0xffffff, 0.18);
-      this.highlightGraphics.fillPoints(
-        [
-          { x: centerX, y: centerY - TILE_HEIGHT / 2 },
-          { x: centerX + TILE_WIDTH / 2, y: centerY },
-          { x: centerX, y: centerY + TILE_HEIGHT / 2 },
-          { x: centerX - TILE_WIDTH / 2, y: centerY },
-        ],
-        true,
-      );
+
+    if (this.selectedSpellId === null) {
+      for (const reachable of reachableCells(this.view, activeUnit)) {
+        this.fillCell(reachable.coord.x, reachable.coord.y, reachable.coord.z, 0xffffff, 0.18);
+      }
+      return;
     }
+
+    // Targeting preview: which cells this spell can legally be aimed at.
+    // Range is Manhattan; blocked line of sight is shown rather than hidden,
+    // so the ridge reads as cover instead of as an unexplained rejection.
+    const spell = this.view.spellById(this.selectedSpellId);
+    if (spell === null) {
+      return;
+    }
+    const heightAt = (x: number, y: number): number => this.view.cellAt(x, y)?.z ?? 0;
+    for (const cell of this.view.cells) {
+      const distance =
+        Math.abs(cell.x - activeUnit.position.x) + Math.abs(cell.y - activeUnit.position.y);
+      if (distance < spell.minRange || distance > spell.maxRange) {
+        continue;
+      }
+      const blocked =
+        spell.requiresLineOfSight &&
+        !hasLineOfSightOverHeights(heightAt, activeUnit.position, {
+          x: cell.x,
+          y: cell.y,
+          z: cell.z,
+        });
+      this.fillCell(cell.x, cell.y, cell.z, blocked ? 0xff5e5e : 0xffb347, blocked ? 0.12 : 0.3);
+    }
+  }
+
+  private fillCell(x: number, y: number, z: number, color: number, alpha: number): void {
+    const centerX = isoX(x, y);
+    const centerY = isoY(x, y, z);
+    this.highlightGraphics.fillStyle(color, alpha);
+    this.highlightGraphics.fillPoints(
+      [
+        { x: centerX, y: centerY - TILE_HEIGHT / 2 },
+        { x: centerX + TILE_WIDTH / 2, y: centerY },
+        { x: centerX, y: centerY + TILE_HEIGHT / 2 },
+        { x: centerX - TILE_WIDTH / 2, y: centerY },
+      ],
+      true,
+    );
   }
 
   private floatText(x: number, y: number, z: number, text: string, color: string): void {

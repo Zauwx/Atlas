@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@atlas/engine": "*",
     "@atlas/shared": "*",
     "colyseus.js": "^0.16.0",
     "phaser": "^3.87.0"

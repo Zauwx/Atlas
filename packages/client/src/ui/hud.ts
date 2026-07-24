@@ -1,10 +1,15 @@
 import Phaser from "phaser";
 import type { GameConfig, PlayerId, SpellId, StanceId } from "@atlas/shared";
 import type { MatchView, UnitView } from "../state/match-view.js";
+import { describeSpell } from "./describe.js";
 
 /**
- * Minimal in-canvas HUD: status readout, spell bar, stance picker,
- * End Turn button, message line. Placeholder styling only.
+ * Minimal in-canvas HUD: status readout, stance panel, spell bar, End Turn
+ * button, message line.
+ *
+ * GAME_DESIGN.md "Design Principles": important information must be
+ * visible. Every stance and spell shows what it actually does, read from
+ * configuration — new content is explained automatically, with no UI change.
  */
 
 export interface HudCallbacks {
@@ -26,10 +31,12 @@ const BUTTON_IDLE_COLOR = "#2a3a55";
 export class Hud {
   private statusText!: Phaser.GameObjects.Text;
   private messageText!: Phaser.GameObjects.Text;
+  private detailText!: Phaser.GameObjects.Text;
   private endTurnButton!: Phaser.GameObjects.Text;
   private readonly spellButtons = new Map<SpellId, Phaser.GameObjects.Text>();
-  private readonly stanceButtons = new Map<StanceId, Phaser.GameObjects.Text>();
+  private readonly stancePanel: Phaser.GameObjects.GameObject[] = [];
   private messageTimer: Phaser.Time.TimerEvent | null = null;
+  private hoveredSpellId: SpellId | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -46,8 +53,15 @@ export class Hud {
       .setDepth(1000);
 
     this.messageText = this.scene.add
-      .text(width / 2, height - 96, "", { fontSize: "14px", color: "#ffd27a" })
+      .text(width / 2, height - 108, "", { fontSize: "14px", color: "#ffd27a" })
       .setOrigin(0.5, 0.5)
+      .setScrollFactor(0)
+      .setDepth(1000);
+
+    // Explains the spell under the cursor, or the selected one.
+    this.detailText = this.scene.add
+      .text(12, height - 54, "", { fontSize: "13px", color: "#a9b7d0" })
+      .setOrigin(0, 1)
       .setScrollFactor(0)
       .setDepth(1000);
 
@@ -80,25 +94,83 @@ export class Hud {
         .setInteractive({ useHandCursor: true })
         .on("pointerdown", () => {
           this.callbacks.onSpellToggled(spell.id);
+        })
+        .on("pointerover", () => {
+          this.hoveredSpellId = spell.id;
+          this.detailText.setText(describeSpell(spell, this.config));
+        })
+        .on("pointerout", () => {
+          if (this.hoveredSpellId === spell.id) {
+            this.hoveredSpellId = null;
+          }
         });
       this.spellButtons.set(spell.id, button);
       spellX += button.width + 8;
     }
 
-    let stanceX = 12;
-    for (const stance of this.config.stances) {
+    this.buildStancePanel();
+  }
+
+  /**
+   * Stance selection is the signature decision of the round, so every
+   * option states its rule effect permanently — no hovering required.
+   */
+  private buildStancePanel(): void {
+    const { width, height } = this.scene.scale;
+    const rowHeight = 42;
+    const panelHeight = 74 + this.config.stances.length * rowHeight;
+    const panelTop = height / 2 - panelHeight / 2;
+
+    const backdrop = this.scene.add
+      .rectangle(width / 2, panelTop + panelHeight / 2, 660, panelHeight, 0x0e1420, 0.92)
+      .setStrokeStyle(1, 0x4e8cff, 0.5)
+      .setScrollFactor(0)
+      .setDepth(1500);
+    this.stancePanel.push(backdrop);
+
+    const title = this.scene.add
+      .text(width / 2, panelTop + 20, "Choose your stance", {
+        fontSize: "18px",
+        color: "#e8eefc",
+      })
+      .setOrigin(0.5, 0.5)
+      .setScrollFactor(0)
+      .setDepth(1501);
+    this.stancePanel.push(title);
+
+    const subtitle = this.scene.add
+      .text(width / 2, panelTop + 44, "Secret until both players have committed.", {
+        fontSize: "12px",
+        color: "#8fa0bd",
+      })
+      .setOrigin(0.5, 0.5)
+      .setScrollFactor(0)
+      .setDepth(1501);
+    this.stancePanel.push(subtitle);
+
+    this.config.stances.forEach((stance, index) => {
+      const rowY = panelTop + 78 + index * rowHeight;
       const button = this.scene.add
-        .text(stanceX, height - 52, `Stance: ${stance.name}`, BUTTON_STYLE)
-        .setOrigin(0, 1)
+        .text(width / 2 - 310, rowY, stance.name, BUTTON_STYLE)
+        .setOrigin(0, 0.5)
         .setScrollFactor(0)
-        .setDepth(1000)
+        .setDepth(1501)
         .setInteractive({ useHandCursor: true })
         .on("pointerdown", () => {
           this.callbacks.onStanceChosen(stance.id);
         });
-      this.stanceButtons.set(stance.id, button);
-      stanceX += button.width + 8;
-    }
+      this.stancePanel.push(button);
+
+      const description = this.scene.add
+        .text(width / 2 - 150, rowY, stance.description, {
+          fontSize: "13px",
+          color: "#a9b7d0",
+        })
+        .setOrigin(0, 0.5)
+        .setScrollFactor(0)
+        .setDepth(1501);
+      this.stancePanel.push(description);
+    });
   }
 
   update(
@@ -116,6 +188,7 @@ export class Hud {
       myUnit === null
         ? "You have no living unit."
         : `HP ${String(myUnit.healthPoints)}/${String(myUnit.maxHealthPoints)}   AP ${String(myUnit.actionPoints)}   MP ${String(myUnit.movementPoints)}`,
+      this.describeUnitStates(myUnit),
       view.phase === "UnitTurns"
         ? view.activeUnitId === null
           ? ""
@@ -137,11 +210,44 @@ export class Hud {
         backgroundColor: spellId === selectedSpellId ? BUTTON_SELECTED_COLOR : BUTTON_IDLE_COLOR,
       });
     }
+
+    const detailSpellId = this.hoveredSpellId ?? selectedSpellId;
+    const detailSpell =
+      detailSpellId === null
+        ? null
+        : (this.config.spells.find((spell) => spell.id === detailSpellId) ?? null);
+    this.detailText.setVisible(isMyTurn);
+    this.detailText.setText(
+      detailSpell !== null
+        ? describeSpell(detailSpell, this.config)
+        : isMyTurn
+          ? "Click a highlighted tile to move, or pick a spell to see its range."
+          : "",
+    );
+
     const showStances = view.phase === "StanceSelection" && !stanceLocked;
-    for (const button of this.stanceButtons.values()) {
-      button.setVisible(showStances);
+    for (const element of this.stancePanel) {
+      if (
+        element instanceof Phaser.GameObjects.Rectangle ||
+        element instanceof Phaser.GameObjects.Text
+      ) {
+        element.setVisible(showStances);
+      }
     }
     void myPlayerId;
+  }
+
+  /** Active states matter to every decision, so they are always on screen. */
+  private describeUnitStates(unit: UnitView | null): string {
+    if (unit === null || unit.states.length === 0) {
+      return "";
+    }
+    const names = unit.states.map((instance) => {
+      const state = this.config.states.find((candidate) => candidate.id === instance.stateId);
+      const label = state?.name ?? instance.stateId;
+      return `${label} (${String(instance.remainingDuration)})`;
+    });
+    return `Affected by: ${names.join(", ")}`;
   }
 
   showMessage(text: string): void {

@@ -62,12 +62,26 @@ export function supercoverCrossedCells(
   return crossed;
 }
 
-export function hasLineOfSight(state: MatchState, from: CellCoord, to: CellCoord): boolean {
+/**
+ * The rule itself, over any height lookup. Exported so UI targeting
+ * previews reuse this exact implementation instead of restating the rule
+ * (ARCHITECTURE.md "Client Rendering Decisions"): the client may show what
+ * the server would decide, but never decides for itself.
+ */
+export function hasLineOfSightOverHeights(
+  heightAt: (x: number, y: number) => number,
+  from: CellCoord,
+  to: CellCoord,
+): boolean {
   const blockingHeight = Math.max(from.z, to.z) + 1;
   for (const crossed of supercoverCrossedCells(from, to)) {
-    if (cellAt(state, crossed.x, crossed.y).z >= blockingHeight) {
+    if (heightAt(crossed.x, crossed.y) >= blockingHeight) {
       return false;
     }
   }
   return true;
+}
+
+export function hasLineOfSight(state: MatchState, from: CellCoord, to: CellCoord): boolean {
+  return hasLineOfSightOverHeights((x, y) => cellAt(state, x, y).z, from, to);
 }

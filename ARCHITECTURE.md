@@ -57,7 +57,7 @@ client ──▶ shared ◀── engine ◀── server
 - `shared` depends on nothing else in the workspace. It contains **contracts only** — no logic.
 - `engine` depends only on `shared`. It is pure: no Colyseus, no Phaser, no I/O.
 - `server` depends on `engine` and `shared`; it hosts the simulation.
-- `client` depends on `shared`; it may later depend on `engine` for client-side prediction and browser replay verification — never on `server`.
+- `client` depends on `shared` and on `engine` (pure rule functions reused for UI previews, e.g. line-of-sight targeting; later for prediction and browser replay verification) — never on `server`.
 - `client` and `server` **never** import from each other.
 - No circular dependencies anywhere, at package level or module level.
 
@@ -144,6 +144,7 @@ The room protocol (message names and payload schemas) is defined in `shared` (`r
 - **Pure event playback, no prediction in V1.** The client animates only server-emitted events; between intent and response it simply waits. Prediction can be added later by importing the `engine` package — the dependency direction already allows it.
 - **Isometric 2.5D projection.** Diamond tiles with height drawn as extruded terraces, so verticality is physically visible. Projection and depth-sorting are pure, tested functions.
 - The client keeps a display-only view state (positions, HP, resources) folded from snapshot + events. It contains no rules; any drift is corrected by the next snapshot. The client-side path suggestion used for movement input is a UI convenience — the server remains the sole validator.
+- **Readability** (GAME_DESIGN.md "Design Principles": important information must be visible): stance and spell effects are rendered from their configuration — costs, ranges, line-of-sight requirements, and effect summaries — so new content explains itself with no UI change. Targeting previews call the engine's own rule functions rather than restating them, so a preview can never disagree with the server's ruling.
 
 ### Timers and Disconnects (Phase 4, provisional values)
 
