@@ -1,13 +1,10 @@
-import { RULEBOOK_PHYSICS } from "@atlas/shared";
-
 /**
- * Package marker for @atlas/server.
- *
- * The cross-package import above proves the workspace wiring
- * (server → shared) compiles under project references. Real server code
- * (Colyseus rooms, validation, simulation hosting) arrives in Phase 4 —
- * see ARCHITECTURE.md.
+ * @atlas/server — authoritative game server (ARCHITECTURE.md).
+ * Pure exports; the runnable entry point is main.ts (`npm start`).
  */
-export const SERVER_PACKAGE_NAME = "@atlas/server";
 
-export const LINKED_PHYSICS_CONFIG = RULEBOOK_PHYSICS;
+export { MatchRoom, type MatchRoomCreateOptions } from "./rooms/match-room.js";
+export { MatchCoordinator, type MatchMessenger } from "./match/match-coordinator.js";
+export { TimeoutScheduler, type Scheduler, type ScheduledTask } from "./match/scheduler.js";
+export { InMemoryReplayStore, type ReplayStore } from "./replay/replay-store.js";
+export { createDevGameConfig, createDevMap, buildDevMatchSetup } from "./dev/dev-content.js";

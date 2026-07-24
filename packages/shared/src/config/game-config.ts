@@ -5,6 +5,7 @@ import { SpellConfigSchema } from "./spell-config.js";
 import { StanceConfigSchema } from "./stance-config.js";
 import { StateConfigSchema } from "./state-config.js";
 import { TerrainConfigSchema } from "./terrain-config.js";
+import { TimersConfigSchema } from "./timers-config.js";
 
 /**
  * The complete game configuration — the data-driven source of truth for all
@@ -13,6 +14,7 @@ import { TerrainConfigSchema } from "./terrain-config.js";
  */
 export const GameConfigSchema = z.object({
   physics: PhysicsConfigSchema,
+  timers: TimersConfigSchema,
   terrains: z.array(TerrainConfigSchema),
   states: z.array(StateConfigSchema),
   stances: z.array(StanceConfigSchema),

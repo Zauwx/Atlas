@@ -9,7 +9,8 @@ import { IntentTypeSchema } from "./intents.js";
  * offending client and never enter the match event log.
  */
 export const IntentRejectionSchema = z.object({
-  intentType: IntentTypeSchema,
+  /** Null when the payload was too malformed to even identify the intent type. */
+  intentType: IntentTypeSchema.nullable(),
   code: IntentErrorCodeSchema,
   /** Optional human-readable detail for debugging; never required by clients. */
   message: z.string().nullable(),

@@ -23,8 +23,10 @@ export * from "./dto/match-setup.js";
 export * from "./messages/intents.js";
 export * from "./messages/events.js";
 export * from "./messages/rejection.js";
+export * from "./messages/room-messages.js";
 
 export * from "./config/physics-config.js";
+export * from "./config/timers-config.js";
 export * from "./config/state-config.js";
 export * from "./config/terrain-config.js";
 export * from "./config/stance-config.js";

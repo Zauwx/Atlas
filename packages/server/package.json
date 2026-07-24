@@ -2,7 +2,7 @@
   "name": "@atlas/server",
   "version": "0.0.0",
   "private": true,
-  "description": "Authoritative game server for Atlas (Node.js + Colyseus). Framework dependencies arrive in Phase 4.",
+  "description": "Authoritative game server for Atlas (Node.js + Colyseus).",
   "license": "AGPL-3.0-only",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,7 +13,16 @@
       "default": "./dist/index.js"
     }
   },
+  "scripts": {
+    "start": "node dist/main.js"
+  },
   "dependencies": {
-    "@atlas/shared": "*"
+    "@atlas/engine": "*",
+    "@atlas/shared": "*",
+    "@colyseus/ws-transport": "^0.16.0",
+    "colyseus": "^0.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
   }
 }

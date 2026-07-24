@@ -1,6 +1,7 @@
 import { StateIdSchema, TerrainIdSchema } from "../ids.js";
 import type { GameConfig } from "./game-config.js";
 import { RULEBOOK_PHYSICS } from "./physics-config.js";
+import { BASELINE_TIMERS } from "./timers-config.js";
 
 /**
  * Baseline configuration containing ONLY what the rulebook has decided:
@@ -29,6 +30,7 @@ const DEFAULT_TERRAIN_STATE_DURATION_ROUNDS = 1;
 
 export const BASELINE_GAME_CONFIG: GameConfig = {
   physics: RULEBOOK_PHYSICS,
+  timers: BASELINE_TIMERS,
   terrains: [
     {
       id: TERRAIN_ID_NORMAL,
