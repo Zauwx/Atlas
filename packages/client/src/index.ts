@@ -1,4 +1,4 @@
-import { SHARED_PACKAGE_NAME } from "@atlas/shared";
+import { RULEBOOK_PHYSICS } from "@atlas/shared";
 
 /**
  * Package marker for @atlas/client.
@@ -9,4 +9,4 @@ import { SHARED_PACKAGE_NAME } from "@atlas/shared";
  */
 export const CLIENT_PACKAGE_NAME = "@atlas/client";
 
-export const LINKED_SHARED_PACKAGE_NAME = SHARED_PACKAGE_NAME;
+export const LINKED_PHYSICS_CONFIG = RULEBOOK_PHYSICS;

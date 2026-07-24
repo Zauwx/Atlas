@@ -55,7 +55,7 @@ Development is phase-gated (see [ARCHITECTURE.md](ARCHITECTURE.md#roadmap)):
 
 - [x] Phase 0 — Documentation
 - [x] Phase 1 — Repository setup (monorepo, tooling, linting, CI, testing)
-- [ ] Phase 2 — Shared package (DTOs, enums, types, schemas, configurations)
+- [x] Phase 2 — Shared package (DTOs, enums, types, schemas, configurations)
 - [ ] Phase 3 — Gameplay engine (deterministic, fully unit-tested)
 - [ ] Phase 4 — Server (Colyseus rooms, validation, synchronization, replays)
 - [ ] Phase 5 — Client (Phaser rendering, input, UI)

@@ -1,4 +1,4 @@
-import { SHARED_PACKAGE_NAME } from "@atlas/shared";
+import { RULEBOOK_PHYSICS } from "@atlas/shared";
 
 /**
  * Package marker for @atlas/server.
@@ -10,4 +10,4 @@ import { SHARED_PACKAGE_NAME } from "@atlas/shared";
  */
 export const SERVER_PACKAGE_NAME = "@atlas/server";
 
-export const LINKED_SHARED_PACKAGE_NAME = SHARED_PACKAGE_NAME;
+export const LINKED_PHYSICS_CONFIG = RULEBOOK_PHYSICS;
