@@ -9,12 +9,12 @@ import {
 } from "@atlas/shared";
 
 /**
- * DEVELOPER SCAFFOLDING — NOT GAME CONTENT.
+ * TEST SCAFFOLDING — NOT GAME CONTENT.
  *
- * This configuration exists so the server can host a match before the real
- * V1 classes, spells, and stances are designed (Phase 6, behind rulebook
- * decisions). Everything here is deliberately named "dev-*" and must be
- * replaced by configured content in Phase 6.
+ * Shipping content now lives in @atlas/shared (V1_GAME_CONFIG) and is what
+ * the match room serves. This minimal "dev-*" configuration remains so the
+ * coordinator's protocol, timer, and disconnect tests exercise server
+ * behavior without depending on balance-sensitive game content.
  */
 
 export const DEV_CLASS_ID = ClassIdSchema.parse("dev-class");

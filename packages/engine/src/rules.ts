@@ -15,8 +15,12 @@ import type { MatchState, UnitRuntime } from "./match-state.js";
 export interface RuleModifierHooks {
   /** Rooted-style effects: returning false makes the unit unable to move voluntarily. */
   canUnitMove?: (unit: UnitRuntime) => boolean;
-  /** Stance/state effects altering how far the unit is pushed. Must return an integer ≥ 0. */
+  /** Defender side of push resolution (rulebook: Push distance resolution, steps 3–4). */
   modifyPushDistance?: (unit: UnitRuntime, distance: number) => number;
+  /** Attacker side of push resolution (rulebook: Push distance resolution, step 2). */
+  modifyOutgoingPushDistance?: (pusher: UnitRuntime, distance: number) => number;
+  /** Climb cost resolution (rulebook): may change the extra MP cost of climbing. */
+  modifyClimbCost?: (unit: UnitRuntime, movementPointCost: number) => number;
 }
 
 export class RuleModifierRegistry {
@@ -73,18 +77,49 @@ export function canUnitMove(
   return true;
 }
 
+/**
+ * Push distance resolution — COMBAT_RULEBOOK.md: base distance, then the
+ * pusher's modifiers, then the pushed unit's (stance before states via
+ * activeHooksFor), clamped at 0. `pusher` is null for pushes without an
+ * originating unit.
+ */
 export function effectivePushDistance(
   state: MatchState,
   registry: RuleModifierRegistry,
-  unit: UnitRuntime,
+  pusher: UnitRuntime | null,
+  target: UnitRuntime,
   baseDistance: number,
 ): number {
   void state;
   let distance = baseDistance;
-  for (const hooks of activeHooksFor(registry, unit)) {
+  if (pusher !== null) {
+    for (const hooks of activeHooksFor(registry, pusher)) {
+      if (hooks.modifyOutgoingPushDistance !== undefined) {
+        distance = hooks.modifyOutgoingPushDistance(pusher, distance);
+      }
+    }
+  }
+  for (const hooks of activeHooksFor(registry, target)) {
     if (hooks.modifyPushDistance !== undefined) {
-      distance = hooks.modifyPushDistance(unit, distance);
+      distance = hooks.modifyPushDistance(target, distance);
     }
   }
   return Math.max(0, Math.trunc(distance));
+}
+
+/** Climb cost resolution — COMBAT_RULEBOOK.md: hooks may alter the extra MP cost. */
+export function effectiveClimbCost(
+  state: MatchState,
+  registry: RuleModifierRegistry,
+  unit: UnitRuntime,
+  baseCost: number,
+): number {
+  void state;
+  let cost = baseCost;
+  for (const hooks of activeHooksFor(registry, unit)) {
+    if (hooks.modifyClimbCost !== undefined) {
+      cost = hooks.modifyClimbCost(unit, cost);
+    }
+  }
+  return Math.max(0, Math.trunc(cost));
 }

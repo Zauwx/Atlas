@@ -1,10 +1,11 @@
 import { Room, type Client } from "colyseus";
+import { createV1RuleRegistry, type RuleModifierRegistry } from "@atlas/engine";
 import type { GameConfig, MatchSetup, PlayerId } from "@atlas/shared";
-import { MatchIdSchema, PlayerIdSchema, RoomMessageType } from "@atlas/shared";
+import { MatchIdSchema, PlayerIdSchema, RoomMessageType, V1_GAME_CONFIG } from "@atlas/shared";
 import { MatchCoordinator, type MatchMessenger } from "../match/match-coordinator.js";
 import type { Scheduler } from "../match/scheduler.js";
 import { InMemoryReplayStore, type ReplayStore } from "../replay/replay-store.js";
-import { buildDevMatchSetup, createDevGameConfig } from "../dev/dev-content.js";
+import { buildV1MatchSetup } from "../content/v1-setup.js";
 
 /**
  * Thin Colyseus adapter around MatchCoordinator (ARCHITECTURE.md "Timers
@@ -17,6 +18,7 @@ import { buildDevMatchSetup, createDevGameConfig } from "../dev/dev-content.js";
 export interface MatchRoomCreateOptions {
   config?: GameConfig;
   buildSetup?: (playerIds: readonly [PlayerId, PlayerId]) => MatchSetup;
+  ruleRegistry?: RuleModifierRegistry;
   reconnectionGraceSeconds?: number;
   replayStore?: ReplayStore;
 }
@@ -77,8 +79,10 @@ export class MatchRoom extends Room {
       PlayerIdSchema.parse(second),
     ];
 
-    const config = this.creationOptions.config ?? createDevGameConfig();
-    const setup = (this.creationOptions.buildSetup ?? buildDevMatchSetup)(playerIds);
+    // V1 content by default (COMBAT_RULEBOOK.md "V1 stances"); tests and
+    // future modes inject their own content through the options.
+    const config = this.creationOptions.config ?? V1_GAME_CONFIG;
+    const setup = (this.creationOptions.buildSetup ?? buildV1MatchSetup)(playerIds);
 
     const messenger: MatchMessenger = {
       sendToPlayer: (playerId, type, payload): void => {
@@ -109,7 +113,10 @@ export class MatchRoom extends Room {
       messenger,
       scheduler,
       this.creationOptions.replayStore ?? new InMemoryReplayStore(),
-      { reconnectionGraceSeconds: this.creationOptions.reconnectionGraceSeconds ?? 60 },
+      {
+        reconnectionGraceSeconds: this.creationOptions.reconnectionGraceSeconds ?? 60,
+        ruleRegistry: this.creationOptions.ruleRegistry ?? createV1RuleRegistry(),
+      },
     );
     this.coordinator.start();
   }

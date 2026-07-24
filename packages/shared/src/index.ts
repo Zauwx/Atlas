@@ -35,3 +35,5 @@ export * from "./config/class-config.js";
 export * from "./config/map-config.js";
 export * from "./config/game-config.js";
 export * from "./config/baseline-game-config.js";
+
+export * from "./content/v1-content.js";

@@ -20,12 +20,13 @@ import { applyTerrainOnEnter } from "./terrain.js";
 export function resolvePush(
   state: MatchState,
   registry: RuleModifierRegistry,
+  pusher: UnitRuntime | null,
   unit: UnitRuntime,
   direction: Direction,
   baseDistance: number,
   events: GameEvent[],
 ): void {
-  const distance = effectivePushDistance(state, registry, unit, baseDistance);
+  const distance = effectivePushDistance(state, registry, pusher, unit, baseDistance);
   if (distance <= 0) {
     return;
   }

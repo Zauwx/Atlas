@@ -3,7 +3,7 @@ import type { MatchState, UnitRuntime } from "./match-state.js";
 import { cellAt, isInBounds, livingUnitAt, unitById } from "./board.js";
 import { applyFall } from "./fall.js";
 import type { RuleModifierRegistry } from "./rules.js";
-import { canUnitMove } from "./rules.js";
+import { canUnitMove, effectiveClimbCost } from "./rules.js";
 import { applyTerrainOnEnter } from "./terrain.js";
 
 /**
@@ -71,7 +71,10 @@ export function tryMove(
     if (climb > state.config.physics.maxClimbHeightWithoutAbility) {
       return { ok: false, code: "ClimbTooHigh" };
     }
-    const climbCost = climb > 0 ? climb * state.config.physics.climbMovementPointCostPerLevel : 0;
+    const baseClimbCost =
+      climb > 0 ? climb * state.config.physics.climbMovementPointCostPerLevel : 0;
+    const climbCost =
+      baseClimbCost > 0 ? effectiveClimbCost(state, registry, unit, baseClimbCost) : 0;
     const stepCost = 1 + climbCost;
     totalCost += stepCost;
 

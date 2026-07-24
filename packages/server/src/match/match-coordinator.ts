@@ -1,4 +1,4 @@
-import { MatchSimulation } from "@atlas/engine";
+import { MatchSimulation, RuleModifierRegistry } from "@atlas/engine";
 import type {
   GameConfig,
   GameEvent,
@@ -30,6 +30,8 @@ export interface MatchMessenger {
 export interface MatchCoordinatorOptions {
   /** Seconds a disconnected player's seat is held before forfeit. */
   reconnectionGraceSeconds?: number;
+  /** Rule-modifier content (stance/state behavior); empty by default. */
+  ruleRegistry?: RuleModifierRegistry;
 }
 
 const DEFAULT_RECONNECTION_GRACE_SECONDS = 60;
@@ -56,7 +58,12 @@ export class MatchCoordinator {
     private readonly replayStore: ReplayStore,
     options?: MatchCoordinatorOptions,
   ) {
-    this.simulation = new MatchSimulation(matchId, config, setup);
+    this.simulation = new MatchSimulation(
+      matchId,
+      config,
+      setup,
+      options?.ruleRegistry ?? new RuleModifierRegistry(),
+    );
     this.playerIds = setup.players.map((player) => player.id);
     this.graceSeconds = options?.reconnectionGraceSeconds ?? DEFAULT_RECONNECTION_GRACE_SECONDS;
   }

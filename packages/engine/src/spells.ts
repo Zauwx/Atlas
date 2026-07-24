@@ -92,7 +92,7 @@ export function tryCastSpell(
   if (targetUnit !== null && pushDirection !== null) {
     for (const effect of effectsOfKind(spell, "Push")) {
       if (targetUnit.alive && !targetUnit.fellIntoBottomless) {
-        resolvePush(state, registry, targetUnit, pushDirection, effect.distance, events);
+        resolvePush(state, registry, caster, targetUnit, pushDirection, effect.distance, events);
       }
     }
   }
