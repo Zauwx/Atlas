@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ClassConfigSchema } from "./class-config.js";
+import { ElementalInteractionConfigSchema } from "./elemental-interaction-config.js";
 import { PhysicsConfigSchema } from "./physics-config.js";
 import { SpellConfigSchema } from "./spell-config.js";
 import { StanceConfigSchema } from "./stance-config.js";
@@ -20,6 +21,7 @@ export const GameConfigSchema = z.object({
   stances: z.array(StanceConfigSchema),
   classes: z.array(ClassConfigSchema),
   spells: z.array(SpellConfigSchema),
+  elementalInteractions: z.array(ElementalInteractionConfigSchema),
 });
 
 export type GameConfig = z.infer<typeof GameConfigSchema>;

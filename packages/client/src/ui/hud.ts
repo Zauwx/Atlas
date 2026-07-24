@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import type { GameConfig, PlayerId, SpellId, StanceId } from "@atlas/shared";
 import type { MatchView, UnitView } from "../state/match-view.js";
-import { describeRevealedStances, describeSpell } from "./describe.js";
+import { describeActiveStates, describeRevealedStances, describeSpell } from "./describe.js";
 
 /**
  * Minimal in-canvas HUD: status readout, stance panel, spell bar, End Turn
@@ -242,12 +242,9 @@ export class Hud {
     if (unit === null || unit.states.length === 0) {
       return "";
     }
-    const names = unit.states.map((instance) => {
-      const state = this.config.states.find((candidate) => candidate.id === instance.stateId);
-      const label = state?.name ?? instance.stateId;
-      return `${label} (${String(instance.remainingDuration)})`;
-    });
-    return `Affected by: ${names.join(", ")}`;
+    return describeActiveStates(unit.states, this.config)
+      .map((line) => `Affected by ${line}`)
+      .join("\n");
   }
 
   showMessage(text: string): void {

@@ -43,6 +43,27 @@ export function describeSpellEffects(spell: SpellConfig, config: GameConfig): st
   return parts.join(", ");
 }
 
+export interface ActiveStateEntry {
+  readonly stateId: StateId;
+  readonly remainingDuration: number;
+}
+
+/**
+ * The states currently on a unit, each with what it does — a player has
+ * to know that being Wet shields them from fire before they walk into
+ * lava (GAME_DESIGN.md: important information must be visible).
+ */
+export function describeActiveStates(
+  states: readonly ActiveStateEntry[],
+  config: GameConfig,
+): string[] {
+  return states.map((instance) => {
+    const state = config.states.find((candidate) => candidate.id === instance.stateId);
+    const label = `${state?.name ?? instance.stateId} (${String(instance.remainingDuration)})`;
+    return state === undefined ? label : `${label} — ${state.description}`;
+  });
+}
+
 export interface RevealedStanceHolder {
   readonly playerId: PlayerId;
   readonly revealedStanceId: StanceId | null;

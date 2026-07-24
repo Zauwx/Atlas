@@ -104,20 +104,49 @@ export const BASELINE_GAME_CONFIG: GameConfig = {
     {
       id: STATE_ID_WET,
       name: "Wet",
-      description: "Pushes against you travel 1 cell further.",
+      description:
+        "Pushes against you travel 1 cell further. Shields you once from catching fire, and conducts Lightning.",
     },
     {
       id: STATE_ID_BURNING,
       name: "Burning",
-      description: "Takes 15 Fire damage at the end of each round.",
+      description: "Takes 15 Fire damage at the end of each round. Fire also thaws Frozen.",
     },
     {
       id: STATE_ID_FROZEN,
       name: "Frozen",
-      description: "Cannot climb, in any stance.",
+      description: "Cannot climb, in any stance. Fire thaws it.",
     },
   ],
   stances: [],
   classes: [],
   spells: [],
+  /** COMBAT_RULEBOOK.md "Elemental Interactions" — the whole table. */
+  elementalInteractions: [
+    {
+      // Water protects you once: entering Lava boils the water away
+      // instead of setting you alight.
+      trigger: { kind: "StateApplied", stateId: STATE_ID_BURNING },
+      requiresStateId: STATE_ID_WET,
+      bonusDamage: 0,
+      removesStateIds: [STATE_ID_WET],
+      preventsApplication: true,
+    },
+    {
+      // Being soaked conducts: the price of Wet's protection from fire.
+      trigger: { kind: "Damage", element: "Lightning" },
+      requiresStateId: STATE_ID_WET,
+      bonusDamage: 10,
+      removesStateIds: [],
+      preventsApplication: false,
+    },
+    {
+      // Fire thaws, so Frozen is answerable rather than an outright lockout.
+      trigger: { kind: "Damage", element: "Fire" },
+      requiresStateId: STATE_ID_FROZEN,
+      bonusDamage: 0,
+      removesStateIds: [STATE_ID_FROZEN],
+      preventsApplication: false,
+    },
+  ],
 };

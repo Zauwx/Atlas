@@ -8,6 +8,7 @@ import type {
 } from "@atlas/shared";
 import type { MatchState, UnitRuntime } from "./match-state.js";
 import { unitById } from "./board.js";
+import { applyElementalDamage } from "./combat.js";
 import type { RuleModifierRegistry } from "./rules.js";
 import { roundEndDamageFor } from "./rules.js";
 import { tickStatesEndOfRound } from "./states.js";
@@ -223,15 +224,9 @@ function endRound(state: MatchState, registry: RuleModifierRegistry, events: Gam
       continue;
     }
     for (const damage of roundEndDamageFor(registry, unit)) {
-      unit.currentHealthPoints -= damage.amount;
-      events.push({
-        type: "Damage",
-        targetUnitId: unit.id,
-        amount: damage.amount,
-        element: damage.element,
-        sourceUnitId: null,
-        sourceSpellId: null,
-      });
+      // Through the same path as spell damage, so the interaction table
+      // applies here too (rulebook: Elemental Interactions).
+      applyElementalDamage(state, unit, damage.amount, damage.element, null, null, events);
     }
   }
 

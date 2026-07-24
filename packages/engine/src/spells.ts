@@ -9,7 +9,7 @@ import type {
 } from "@atlas/shared";
 import type { MatchState, UnitRuntime } from "./match-state.js";
 import { cellAt, isInBounds, livingUnitAt, manhattanDistance, unitById } from "./board.js";
-import { applyHeal, applySpellDamage } from "./combat.js";
+import { applyElementalDamage, applyHeal } from "./combat.js";
 import { hasLineOfSight } from "./line-of-sight.js";
 import { resolvePush } from "./push.js";
 import type { RuleModifierRegistry } from "./rules.js";
@@ -101,7 +101,7 @@ export function tryCastSpell(
   if (targetUnit !== null) {
     for (const effect of effectsOfKind(spell, "Damage")) {
       if (effect.element === "Physical") {
-        applySpellDamage(
+        applyElementalDamage(
           state,
           targetUnit,
           effect.amount,
@@ -118,7 +118,7 @@ export function tryCastSpell(
     // Step 12 — elemental damage.
     for (const effect of effectsOfKind(spell, "Damage")) {
       if (effect.element !== "Physical") {
-        applySpellDamage(
+        applyElementalDamage(
           state,
           targetUnit,
           effect.amount,
@@ -134,7 +134,15 @@ export function tryCastSpell(
   // Step 13 — state application (falls back to the cell when unoccupied).
   for (const effect of effectsOfKind(spell, "ApplyState")) {
     if (targetUnit !== null) {
-      applyStateToUnit(targetUnit, effect.stateId, effect.duration, caster.id, spell.id, events);
+      applyStateToUnit(
+        state,
+        targetUnit,
+        effect.stateId,
+        effect.duration,
+        caster.id,
+        spell.id,
+        events,
+      );
     } else {
       applyStateToCell(targetCell, effect.stateId, effect.duration, caster.id, spell.id, events);
     }

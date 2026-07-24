@@ -25,6 +25,6 @@ export function applyTerrainOnEnter(
     return;
   }
   for (const stateId of terrain.appliedStateIds) {
-    applyStateToUnit(unit, stateId, terrain.appliedStateDurationRounds, null, null, events);
+    applyStateToUnit(state, unit, stateId, terrain.appliedStateDurationRounds, null, null, events);
   }
 }

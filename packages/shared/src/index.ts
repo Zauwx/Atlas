@@ -27,6 +27,7 @@ export * from "./messages/room-messages.js";
 
 export * from "./config/physics-config.js";
 export * from "./config/timers-config.js";
+export * from "./config/elemental-interaction-config.js";
 export * from "./config/state-config.js";
 export * from "./config/terrain-config.js";
 export * from "./config/stance-config.js";

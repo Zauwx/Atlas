@@ -1,6 +1,7 @@
 import type { GameEvent, SpellId, StateId, UnitId } from "@atlas/shared";
 import type { CellRuntime, MatchState, UnitRuntime } from "./match-state.js";
 import { coordOf } from "./board.js";
+import { stateApplicationIsPrevented } from "./elemental.js";
 
 /**
  * State lifecycle — COMBAT_RULEBOOK.md "States".
@@ -9,6 +10,7 @@ import { coordOf } from "./board.js";
  */
 
 export function applyStateToUnit(
+  state: MatchState,
   unit: UnitRuntime,
   stateId: StateId,
   duration: number,
@@ -16,6 +18,11 @@ export function applyStateToUnit(
   sourceSpellId: SpellId | null,
   events: GameEvent[],
 ): void {
+  // The interaction table can suppress an incoming state outright
+  // (rulebook: Elemental Interactions) — e.g. Wet quenching Burning.
+  if (stateApplicationIsPrevented(state, unit, stateId, events)) {
+    return;
+  }
   const existing = unit.states.find((instance) => instance.stateId === stateId);
   if (existing !== undefined) {
     existing.remainingDuration = duration;

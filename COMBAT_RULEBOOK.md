@@ -281,6 +281,26 @@ Element types: Physical, Fire, Water, Ice, Lightning, Earth, Air, Neutral.
 
 ---
 
+## Elemental Interactions
+
+Interactions live in a **single table** that the engine consults. They are never written inside a spell, a terrain, or a state (see Invariants).
+
+Each entry has a **trigger**, a **required state** on the target, and its outcomes.
+
+| Trigger                  | Target has | Outcome                              |
+| ------------------------ | ---------- | ------------------------------------ |
+| Burning would be applied | Wet        | Burning is prevented; Wet is removed |
+| Lightning damage lands   | Wet        | +10 damage                           |
+| Fire damage lands        | Frozen     | Frozen is removed                    |
+
+Resolution:
+
+- **State triggers** are consulted when a state is about to be applied to a unit, whatever the source — spell, terrain, or another rule. A prevented state produces no ApplyState event; a consumed state produces a RemoveState event. This is what makes water protect a unit entering Lava: the Wet is boiled away instead of the unit catching fire.
+- **Damage triggers** are consulted immediately before damage is applied. Bonus damage is added first, then the listed states are removed. They apply to any damage carrying an element, including the periodic damage a state deals at end of round.
+- Entries are evaluated in table order, and each entry applies at most once per triggering event.
+
+---
+
 ## Propagation
 
 An elemental or terrain propagation:
@@ -484,5 +504,4 @@ The following invariants must never be violated:
 - **AP/MP/HP baseline values:** per-class values are configuration, tracked by [BALANCE_GUIDELINES.md](BALANCE_GUIDELINES.md); the rulebook only fixes the mechanics.
 - **Healing and Shielded interaction:** does Shielded absorb damage before or after elemental computation (pipeline steps 11–12)?
 - **Exact effects of the remaining initial states** (Electrified, Shielded, Rooted): precise rule modifications must be specified (and added here) before any of them is implemented as an engine rule. Wet, Burning, and Frozen are defined (see States).
-- **Wet and Burning together:** intuitively water should quench fire, but no interaction is defined yet, so a unit can currently be both. This is the first entry the elemental interaction table will need to settle.
 - **Elemental interaction table** (e.g. Fire on a Wet unit, Lightning on Water terrain): interactions flow through states/terrain rules; the concrete table is undecided. The propagation step is a no-op until it exists.

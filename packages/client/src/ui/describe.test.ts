@@ -7,9 +7,15 @@ import {
   SPELL_ID_WATER_JET,
   STANCE_ID_IRON,
   STANCE_ID_STORM,
+  STATE_ID_WET,
   V1_GAME_CONFIG,
 } from "@atlas/shared";
-import { describeRevealedStances, describeSpell, describeSpellEffects } from "./describe.js";
+import {
+  describeActiveStates,
+  describeRevealedStances,
+  describeSpell,
+  describeSpellEffects,
+} from "./describe.js";
 
 const spellById = (id: string) => {
   const spell = V1_GAME_CONFIG.spells.find((candidate) => candidate.id === id);
@@ -56,6 +62,23 @@ describe("spell descriptions (built from configuration, never hardcoded)", () =>
       expect(text).toContain(spell.name);
       expect(text).not.toContain("undefined");
     }
+  });
+});
+
+describe("active states", () => {
+  it("names each state, its remaining duration, and what it does", () => {
+    const lines = describeActiveStates(
+      [{ stateId: STATE_ID_WET, remainingDuration: 2 }],
+      V1_GAME_CONFIG,
+    );
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain("Wet (2)");
+    // The interaction a player must know before walking into lava.
+    expect(lines[0]).toContain("fire");
+  });
+
+  it("returns nothing when the unit has no states", () => {
+    expect(describeActiveStates([], V1_GAME_CONFIG)).toEqual([]);
   });
 });
 
