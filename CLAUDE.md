@@ -155,6 +155,5 @@ If a requested change would damage architecture, maintainability, or determinism
 
 ## Open Questions
 
-- License choice for the open-source release (MIT, Apache-2.0, AGPL…?).
-- Contribution workflow details (branch naming, review requirements, CODEOWNERS) — to be defined in Phase 1.
+- Contribution workflow details (branch naming, review requirements, CODEOWNERS) — basics are in [CONTRIBUTING.md](CONTRIBUTING.md); review/ownership rules still to be defined.
 - Versioning scheme for documents vs. packages (single project version or per-package?).

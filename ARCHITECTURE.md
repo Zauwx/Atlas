@@ -31,6 +31,8 @@ Every technical decision must prioritize:
 | Server   | Node.js, TypeScript, Colyseus                                                |
 | Client   | Phaser 3, Vite, TypeScript                                                   |
 | Shared   | TypeScript (types, DTOs, enums, schemas, configuration, deterministic rules) |
+| Testing  | Vitest (single root runner for all packages)                                 |
+| CI       | GitHub Actions (format check → lint → build → test)                          |
 
 ---
 
@@ -171,9 +173,9 @@ Module rules:
 
 | Phase | Deliverable                                                                                                                                                                         | Status           |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| 0     | Documentation (CLAUDE.md, ARCHITECTURE.md, GAME_DESIGN.md, COMBAT_RULEBOOK.md, BALANCE_GUIDELINES.md)                                                                               | **Current**      |
-| 1     | Repository setup: monorepo, tooling, linting, formatting, CI, testing                                                                                                               | Pending approval |
-| 2     | Shared package: DTOs, enums, types, schemas, configurations (no gameplay)                                                                                                           | —                |
+| 0     | Documentation (CLAUDE.md, ARCHITECTURE.md, GAME_DESIGN.md, COMBAT_RULEBOOK.md, BALANCE_GUIDELINES.md)                                                                               | Done             |
+| 1     | Repository setup: monorepo, tooling, linting, formatting, CI, testing                                                                                                               | Done             |
+| 2     | Shared package: DTOs, enums, types, schemas, configurations (no gameplay)                                                                                                           | Pending approval |
 | 3     | Gameplay engine: movement, pathfinding, LoS, push, collision, fall, terrain, elements, status effects, stances, turn engine, spell resolution, victory conditions — with unit tests | —                |
 | 4     | Server: Colyseus, rooms, networking, validation, synchronization, replay foundations                                                                                                | —                |
 | 5     | Client: Phaser, rendering, input, animations, UI, prediction                                                                                                                        | —                |
@@ -190,5 +192,3 @@ Each phase ends with a summary, open questions, and an explicit stop for approva
 - **Turn timer enforcement:** timer values and what happens on timeout (auto-pass? default stance?) — gameplay decision needed before Phase 4.
 - **Reconnection policy:** how long a disconnected player's session is held, and what opponents see. Decision needed before Phase 4.
 - **Client prediction scope (Phase 5):** whether V1 ships with any prediction at all, or pure event playback. Pure playback is simpler and always correct; prediction improves feel.
-- **Testing stack:** test runner choice (e.g., Vitest vs. Jest) — Phase 1 decision.
-- **CI provider and pipeline stages** — Phase 1 decision.
