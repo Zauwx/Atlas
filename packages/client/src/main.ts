@@ -1,12 +1,14 @@
 import Phaser from "phaser";
+import { V1_GAME_CONFIG } from "@atlas/shared";
 import { MatchConnection } from "./net/connection.js";
 import { MatchSession } from "./net/match-session.js";
 import { MatchScene, type MatchSceneData } from "./scenes/match-scene.js";
+import { chooseClass } from "./ui/class-select.js";
 
 /**
- * Client bootstrap: connect → wait for assignment + config + snapshot →
- * start the Phaser scene. The DOM status line covers the connection and
- * matchmaking wait; Phaser owns everything afterwards.
+ * Client bootstrap: pick a class → connect → wait for assignment, config
+ * and snapshot → start the Phaser scene. The DOM covers everything before
+ * the match; Phaser owns everything after.
  */
 
 const rawServerUrl: unknown = import.meta.env.VITE_SERVER_URL;
@@ -20,9 +22,16 @@ function setStatus(text: string): void {
 }
 
 async function boot(): Promise<void> {
+  /*
+   * The picker runs before any connection exists, so it reads the shipped
+   * content directly. The server independently validates the choice and
+   * falls back to a seat default if it does not recognise it.
+   */
+  const classId = await chooseClass(V1_GAME_CONFIG);
+
   const session = new MatchSession();
   setStatus(`Connecting to ${SERVER_URL}…`);
-  const connection = await MatchConnection.join(SERVER_URL, session);
+  const connection = await MatchConnection.join(SERVER_URL, session, { classId });
   setStatus("Waiting for an opponent…");
 
   session.whenReady(() => {

@@ -24,6 +24,7 @@ export * from "./messages/intents.js";
 export * from "./messages/events.js";
 export * from "./messages/rejection.js";
 export * from "./messages/room-messages.js";
+export * from "./messages/join-options.js";
 
 export * from "./config/physics-config.js";
 export * from "./config/timers-config.js";

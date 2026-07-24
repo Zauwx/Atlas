@@ -1,7 +1,13 @@
 import { Room, type Client } from "colyseus";
 import { createV1RuleRegistry, type RuleModifierRegistry } from "@atlas/engine";
-import type { GameConfig, MatchSetup, PlayerId } from "@atlas/shared";
-import { MatchIdSchema, PlayerIdSchema, RoomMessageType, V1_GAME_CONFIG } from "@atlas/shared";
+import type { ClassId, GameConfig, MatchSetup, PlayerId } from "@atlas/shared";
+import {
+  MatchIdSchema,
+  MatchJoinOptionsSchema,
+  PlayerIdSchema,
+  RoomMessageType,
+  V1_GAME_CONFIG,
+} from "@atlas/shared";
 import { MatchCoordinator, type MatchMessenger } from "../match/match-coordinator.js";
 import type { Scheduler } from "../match/scheduler.js";
 import { InMemoryReplayStore, type ReplayStore } from "../replay/replay-store.js";
@@ -17,7 +23,11 @@ import { buildV1MatchSetup } from "../content/v1-setup.js";
 
 export interface MatchRoomCreateOptions {
   config?: GameConfig;
-  buildSetup?: (playerIds: readonly [PlayerId, PlayerId]) => MatchSetup;
+  buildSetup?: (
+    playerIds: readonly [PlayerId, PlayerId],
+    chosenClassIds: readonly (ClassId | undefined)[],
+    config: GameConfig,
+  ) => MatchSetup;
   ruleRegistry?: RuleModifierRegistry;
   reconnectionGraceSeconds?: number;
   replayStore?: ReplayStore;
@@ -29,6 +39,8 @@ export class MatchRoom extends Room {
   private coordinator: MatchCoordinator | null = null;
   private creationOptions: MatchRoomCreateOptions = {};
   private readonly playerIdBySession = new Map<string, PlayerId>();
+  /** Class each seat asked for at join time; validated against the config. */
+  private readonly chosenClassBySession = new Map<string, ClassId | undefined>();
 
   override onCreate(options: MatchRoomCreateOptions): void {
     this.creationOptions = options;
@@ -40,9 +52,16 @@ export class MatchRoom extends Room {
     });
   }
 
-  override onJoin(client: Client): void {
+  override onJoin(client: Client, options?: unknown): void {
     const playerId = PlayerIdSchema.parse(client.sessionId);
     this.playerIdBySession.set(client.sessionId, playerId);
+    // Never trust the join payload: an unparseable or unknown class falls
+    // back to the seat default in the setup builder.
+    const parsed = MatchJoinOptionsSchema.safeParse(options ?? {});
+    this.chosenClassBySession.set(
+      client.sessionId,
+      parsed.success ? parsed.data.classId : undefined,
+    );
     client.send(RoomMessageType.Assignment, { playerId });
 
     if (this.clients.length === this.maxClients) {
@@ -82,7 +101,12 @@ export class MatchRoom extends Room {
     // V1 content by default (COMBAT_RULEBOOK.md "V1 stances"); tests and
     // future modes inject their own content through the options.
     const config = this.creationOptions.config ?? V1_GAME_CONFIG;
-    const setup = (this.creationOptions.buildSetup ?? buildV1MatchSetup)(playerIds);
+    const chosenClassIds = sessionIds.map((sessionId) => this.chosenClassBySession.get(sessionId));
+    const setup = (this.creationOptions.buildSetup ?? buildV1MatchSetup)(
+      playerIds,
+      chosenClassIds,
+      config,
+    );
 
     const messenger: MatchMessenger = {
       sendToPlayer: (playerId, type, payload): void => {

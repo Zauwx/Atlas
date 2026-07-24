@@ -5,6 +5,7 @@ import type {
   IntentAckMessage,
   IntentRejection,
   MatchEndedMessage,
+  MatchJoinOptions,
   MatchSnapshot,
   PlayerAssignmentMessage,
   PlayerConnectionMessage,
@@ -44,9 +45,10 @@ export class MatchConnection {
   static async join(
     serverUrl: string,
     delegate: MatchConnectionDelegate,
+    options: MatchJoinOptions = {},
   ): Promise<MatchConnection> {
     const client = new Client(serverUrl);
-    const room = await client.joinOrCreate("match");
+    const room = await client.joinOrCreate("match", options);
     return new MatchConnection(room, delegate);
   }
 
