@@ -1,9 +1,13 @@
 import {
+  SHIELDED_ABSORB_AMOUNT,
   STANCE_ID_FLOW,
   STANCE_ID_IRON,
   STANCE_ID_STORM,
   STATE_ID_BURNING,
+  STATE_ID_ELECTRIFIED,
   STATE_ID_FROZEN,
+  STATE_ID_ROOTED,
+  STATE_ID_SHIELDED,
   STATE_ID_WET,
 } from "@atlas/shared";
 import { RuleModifierRegistry } from "../rules.js";
@@ -34,6 +38,21 @@ export function createV1RuleRegistry(): RuleModifierRegistry {
 
   registry.register(STATE_ID_FROZEN, {
     canUnitClimb: () => false,
+  });
+
+  registry.register(STATE_ID_ROOTED, {
+    canUnitMove: () => false,
+  });
+
+  registry.register(STATE_ID_ELECTRIFIED, {
+    canUnitCast: () => false,
+  });
+
+  registry.register(STATE_ID_SHIELDED, {
+    absorbDamage: (amount) => ({
+      amount: amount - SHIELDED_ABSORB_AMOUNT,
+      consumed: true,
+    }),
   });
 
   registry.register(STANCE_ID_IRON, {

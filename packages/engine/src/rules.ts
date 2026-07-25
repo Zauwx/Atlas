@@ -12,9 +12,17 @@ import type { MatchState, UnitRuntime } from "./match-state.js";
  */
 export interface RuleModifierHooks {
   /** Rooted-style effects: returning false makes the unit unable to move voluntarily. */
-  canUnitMove?: (unit: UnitRuntime) => boolean;
+  canUnitMove?: (unit?: UnitRuntime) => boolean;
   /** Frozen-style effects: returning false forbids voluntary climbs (rulebook: States). */
   canUnitClimb?: () => boolean;
+  /** Electrified-style effects: returning false forbids casting spells (rulebook: States). */
+  canUnitCast?: () => boolean;
+  /**
+   * Shielded-style effects: soaks part of an incoming damage instance.
+   * Returns the reduced amount and whether the state is now spent — a
+   * consumed state is removed and its RemoveState event emitted.
+   */
+  absorbDamage?: (amount: number) => { amount: number; consumed: boolean };
   /** Defender side of push resolution (rulebook: Push distance resolution, steps 3–4). */
   modifyPushDistance?: (unit: UnitRuntime, distance: number) => number;
   /** Attacker side of push resolution (rulebook: Push distance resolution, step 2). */
@@ -138,6 +146,39 @@ export function canUnitClimb(registry: RuleModifierRegistry, unit: UnitRuntime):
 }
 
 /**
+ * Whether the stance/state combination permits moving voluntarily. IDs
+ * form, so the client can gray out a Rooted unit without engine state.
+ */
+export function canMoveUnderRules(
+  registry: RuleModifierRegistry,
+  modifierIds: readonly string[],
+): boolean {
+  for (const hooks of hooksForIds(registry, modifierIds)) {
+    if (hooks.canUnitMove !== undefined && !hooks.canUnitMove()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Electrified-style rule: whether the unit may cast (rulebook: States). */
+export function canCastUnderRules(
+  registry: RuleModifierRegistry,
+  modifierIds: readonly string[],
+): boolean {
+  for (const hooks of hooksForIds(registry, modifierIds)) {
+    if (hooks.canUnitCast !== undefined && !hooks.canUnitCast()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function canUnitCast(registry: RuleModifierRegistry, unit: UnitRuntime): boolean {
+  return canCastUnderRules(registry, modifierIdsOf(unit));
+}
+
+/**
  * Push distance resolution — COMBAT_RULEBOOK.md: base distance, then the
  * pusher's modifiers, then the pushed unit's (stance before states via
  * activeHooksFor), clamped at 0. `pusher` is null for pushes without an
@@ -179,4 +220,32 @@ export function roundEndDamageFor(
     }
   }
   return entries;
+}
+
+/**
+ * Runs the unit's Shielded-style absorbers over an incoming damage amount
+ * (rulebook: Defined state effects → Shielded). Returns the reduced amount
+ * and the state IDs to remove, in the same modifier order as everything
+ * else. The caller applies the removals and their RemoveState events, so
+ * this function stays free of state and events.
+ */
+export function absorbIncomingDamage(
+  registry: RuleModifierRegistry,
+  unit: UnitRuntime,
+  amount: number,
+): { amount: number; consumedStateIds: string[] } {
+  let current = amount;
+  const consumedStateIds: string[] = [];
+  for (const id of modifierIdsOf(unit)) {
+    const absorb = registry.get(id)?.absorbDamage;
+    if (absorb === undefined) {
+      continue;
+    }
+    const result = absorb(current);
+    current = Math.max(0, result.amount);
+    if (result.consumed) {
+      consumedStateIds.push(id);
+    }
+  }
+  return { amount: current, consumedStateIds };
 }

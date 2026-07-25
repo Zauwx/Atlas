@@ -8,6 +8,8 @@ export { MatchSimulation, type IntentResult } from "./simulation.js";
 export {
   RuleModifierRegistry,
   canClimbUnderRules,
+  canMoveUnderRules,
+  canCastUnderRules,
   climbCostUnderRules,
   type RuleModifierHooks,
 } from "./rules.js";

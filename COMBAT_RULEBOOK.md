@@ -284,8 +284,11 @@ Initial state examples: Wet, Burning, Frozen, Electrified, Shielded, Rooted.
 - **Wet** (applied by Water terrain): the unit is slippery — **pushes against a Wet unit travel 1 cell further**. (See Pushes → Push distance resolution.)
 - **Burning** (applied by Lava terrain): the unit takes **15 Fire damage at the end of each round** while Burning. (See Round Structure → End of round.)
 - **Frozen** (applied by Ice terrain): the unit **cannot climb**. Any voluntary step onto a higher cell is refused, regardless of stance — Flow Stance removes the MP cost of climbing, not the inability. Forced movement is unaffected.
+- **Rooted** (applied by Earth terrain): the unit **cannot move voluntarily** — every Move intent is refused while Rooted. Forced movement (pushes, falls) still applies, and the unit may still cast.
+- **Electrified**: the unit **cannot cast spells** — every CastSpell intent is refused while Electrified. Movement is unaffected.
+- **Shielded**: absorbs up to **20** from the **next damage instance that carries an element** (spell damage at pipeline steps 11–12, and periodic state damage such as Burning), computed **after** elemental interaction bonuses. The state is then removed, whether or not any damage remained. Physics damage (collisions, falls) carries no element and is **not** absorbed.
 
-The effects of Electrified, Shielded, and Rooted remain open questions; none of them may be implemented before being defined here.
+All six initial states are now defined.
 
 ---
 
@@ -520,6 +523,5 @@ The following invariants must never be violated:
 
 - **Collision damage to the blocking unit:** when a push is interrupted by another unit, does the blocker also take damage? (Currently: only the pushed unit takes collision damage.)
 - **AP/MP/HP baseline values:** per-class values are configuration, tracked by [BALANCE_GUIDELINES.md](BALANCE_GUIDELINES.md); the rulebook only fixes the mechanics.
-- **Healing and Shielded interaction:** does Shielded absorb damage before or after elemental computation (pipeline steps 11–12)?
-- **Exact effects of the remaining initial states** (Electrified, Shielded, Rooted): precise rule modifications must be specified (and added here) before any of them is implemented as an engine rule. Wet, Burning, and Frozen are defined (see States).
-- **Elemental interaction table** (e.g. Fire on a Wet unit, Lightning on Water terrain): interactions flow through states/terrain rules; the concrete table is undecided. The propagation step is a no-op until it exists.
+- **Shielded scope:** Shielded currently absorbs only elemental/spell damage, not physics (collisions, falls); whether a future revision lets it soften physics too is undecided.
+- **Elemental propagation (pipeline step 15):** the interaction table (see Elemental Interactions) resolves per-hit; multi-cell propagation of an element remains undefined and step 15 is a no-op.

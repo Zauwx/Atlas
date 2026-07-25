@@ -2,7 +2,10 @@ import type { GameConfig } from "../config/game-config.js";
 import type { MapConfig } from "../config/map-config.js";
 import {
   BASELINE_GAME_CONFIG,
+  STATE_ID_ELECTRIFIED,
+  STATE_ID_SHIELDED,
   STATE_ID_WET,
+  TERRAIN_ID_EARTH,
   TERRAIN_ID_ICE,
   TERRAIN_ID_LAVA,
   TERRAIN_ID_NORMAL,
@@ -35,6 +38,8 @@ export const SPELL_ID_WATER_JET = SpellIdSchema.parse("water-jet");
 export const SPELL_ID_FLOOD = SpellIdSchema.parse("flood");
 export const SPELL_ID_DRENCH = SpellIdSchema.parse("drench");
 export const SPELL_ID_TIDAL_SURGE = SpellIdSchema.parse("tidal-surge");
+export const SPELL_ID_BULWARK = SpellIdSchema.parse("bulwark");
+export const SPELL_ID_ARC = SpellIdSchema.parse("arc");
 
 export const V1_MAP_ID = MapIdSchema.parse("ridge-and-pools");
 
@@ -65,7 +70,7 @@ export const V1_GAME_CONFIG: GameConfig = {
       baseHealthPoints: 110,
       baseActionPoints: 6,
       baseMovementPoints: 3,
-      spellIds: [SPELL_ID_BASH, SPELL_ID_SHOVE, SPELL_ID_GROUND_SLAM],
+      spellIds: [SPELL_ID_BASH, SPELL_ID_SHOVE, SPELL_ID_GROUND_SLAM, SPELL_ID_BULWARK],
     },
     {
       id: CLASS_ID_TIDECALLER,
@@ -74,7 +79,13 @@ export const V1_GAME_CONFIG: GameConfig = {
       baseHealthPoints: 90,
       baseActionPoints: 6,
       baseMovementPoints: 4,
-      spellIds: [SPELL_ID_WATER_JET, SPELL_ID_FLOOD, SPELL_ID_DRENCH, SPELL_ID_TIDAL_SURGE],
+      spellIds: [
+        SPELL_ID_WATER_JET,
+        SPELL_ID_FLOOD,
+        SPELL_ID_DRENCH,
+        SPELL_ID_TIDAL_SURGE,
+        SPELL_ID_ARC,
+      ],
     },
   ],
   spells: [
@@ -163,6 +174,33 @@ export const V1_GAME_CONFIG: GameConfig = {
       requiresLineOfSight: false,
       effects: [{ kind: "ApplyState", stateId: STATE_ID_WET, duration: 2 }],
     },
+    {
+      id: SPELL_ID_BULWARK,
+      name: "Bulwark",
+      description: "Brace yourself: Shielded, absorbing up to 20 from the next spell.",
+      element: "Neutral",
+      actionPointCost: 2,
+      // Range 0 targets your own cell — a self-cast.
+      minRange: 0,
+      maxRange: 0,
+      requiresLineOfSight: false,
+      effects: [{ kind: "ApplyState", stateId: STATE_ID_SHIELDED, duration: 3 }],
+    },
+    {
+      id: SPELL_ID_ARC,
+      name: "Arc",
+      description:
+        "A jolt of Lightning that damages and Electrifies, locking the target out of casting. Deals bonus damage to a Wet target.",
+      element: "Lightning",
+      actionPointCost: 3,
+      minRange: 1,
+      maxRange: 3,
+      requiresLineOfSight: true,
+      effects: [
+        { kind: "Damage", element: "Lightning", amount: 10 },
+        { kind: "ApplyState", stateId: STATE_ID_ELECTRIFIED, duration: 2 },
+      ],
+    },
   ],
 };
 
@@ -208,6 +246,14 @@ export function createV1Map(): MapConfig {
       }
       if ((x === 8 || x === 9) && y === 9) {
         terrainId = TERRAIN_ID_VEGETATION;
+      }
+      // Grasping earth in the two flanking corridors: crossing it to reach
+      // the far side risks being Rooted in the open.
+      if ((x === 3 || x === 4) && y === 1) {
+        terrainId = TERRAIN_ID_EARTH;
+      }
+      if ((x === 7 || x === 8) && y === 10) {
+        terrainId = TERRAIN_ID_EARTH;
       }
       if ((x === 5 && y === 1) || (x === 6 && y === 10)) {
         terrainId = TERRAIN_ID_VOID;

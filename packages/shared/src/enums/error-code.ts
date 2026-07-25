@@ -21,6 +21,7 @@ export const IntentErrorCodeSchema = z.enum([
   "ClimbTooHigh",
   "ClimbBlocked",
   "MovementBlocked",
+  "CastBlocked",
   "OutOfRange",
   "NoLineOfSight",
   "InvalidTarget",

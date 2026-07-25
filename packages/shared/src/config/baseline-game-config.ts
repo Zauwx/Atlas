@@ -26,6 +26,12 @@ export const TERRAIN_ID_VOID = TerrainIdSchema.parse("void");
 export const STATE_ID_WET = StateIdSchema.parse("wet");
 export const STATE_ID_BURNING = StateIdSchema.parse("burning");
 export const STATE_ID_FROZEN = StateIdSchema.parse("frozen");
+export const STATE_ID_ROOTED = StateIdSchema.parse("rooted");
+export const STATE_ID_ELECTRIFIED = StateIdSchema.parse("electrified");
+export const STATE_ID_SHIELDED = StateIdSchema.parse("shielded");
+
+/** Rulebook "Defined state effects (V1)": Shielded absorbs this much. */
+export const SHIELDED_ABSORB_AMOUNT = 20;
 
 /** Provisional duration for terrain-applied states; a balance value to revisit. */
 const DEFAULT_TERRAIN_STATE_DURATION_ROUNDS = 1;
@@ -75,8 +81,8 @@ export const BASELINE_GAME_CONFIG: GameConfig = {
     {
       id: TERRAIN_ID_EARTH,
       name: "Earth",
-      description: "Bare earth. Behavior pending rulebook decision (open question).",
-      appliedStateIds: [],
+      description: "Grasping ground: applies Rooted, pinning whoever stands on it.",
+      appliedStateIds: [STATE_ID_ROOTED],
       appliedStateDurationRounds: DEFAULT_TERRAIN_STATE_DURATION_ROUNDS,
       bottomless: false,
       opaque: false,
@@ -116,6 +122,21 @@ export const BASELINE_GAME_CONFIG: GameConfig = {
       id: STATE_ID_FROZEN,
       name: "Frozen",
       description: "Cannot climb, in any stance. Fire thaws it.",
+    },
+    {
+      id: STATE_ID_ROOTED,
+      name: "Rooted",
+      description: "Cannot move on your own turn. You can still be pushed, and still cast.",
+    },
+    {
+      id: STATE_ID_ELECTRIFIED,
+      name: "Electrified",
+      description: "Cannot cast spells. You can still move.",
+    },
+    {
+      id: STATE_ID_SHIELDED,
+      name: "Shielded",
+      description: "Absorbs up to 20 from the next spell that hits you, then fades.",
     },
   ],
   stances: [],

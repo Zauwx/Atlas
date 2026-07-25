@@ -179,9 +179,12 @@ export class Hud {
     myUnit: UnitView | null,
     selectedSpellId: SpellId | null,
     stanceLocked: boolean,
+    canCast: boolean,
   ): void {
     const isMyTurn =
       view.phase === "UnitTurns" && myUnit !== null && view.activeUnitId === myUnit.id;
+    // Electrified hides the spell bar entirely (rulebook: States).
+    const canUseSpells = isMyTurn && canCast;
 
     const lines = [
       `Round ${String(view.roundNumber)} — ${view.phase}`,
@@ -206,7 +209,7 @@ export class Hud {
 
     this.endTurnButton.setVisible(isMyTurn);
     for (const [spellId, button] of this.spellButtons) {
-      button.setVisible(isMyTurn);
+      button.setVisible(canUseSpells);
       button.setStyle({
         backgroundColor: spellId === selectedSpellId ? BUTTON_SELECTED_COLOR : BUTTON_IDLE_COLOR,
       });
@@ -219,11 +222,13 @@ export class Hud {
         : (this.config.spells.find((spell) => spell.id === detailSpellId) ?? null);
     this.detailText.setVisible(isMyTurn);
     this.detailText.setText(
-      detailSpell !== null
-        ? describeSpell(detailSpell, this.config)
-        : isMyTurn
-          ? "Click a highlighted tile to move, or pick a spell to see its range."
-          : "",
+      isMyTurn && !canCast
+        ? "Electrified — cannot cast this turn."
+        : detailSpell !== null
+          ? describeSpell(detailSpell, this.config)
+          : isMyTurn
+            ? "Click a highlighted tile to move, or pick a spell to see its range."
+            : "",
     );
 
     const showStances = view.phase === "StanceSelection" && !stanceLocked;

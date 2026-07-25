@@ -12,7 +12,13 @@ import type {
   SpellId,
   UnitId,
 } from "@atlas/shared";
-import { canClimbUnderRules, createV1RuleRegistry, hasLineOfSightOverHeights } from "@atlas/engine";
+import {
+  canCastUnderRules,
+  canClimbUnderRules,
+  canMoveUnderRules,
+  createV1RuleRegistry,
+  hasLineOfSightOverHeights,
+} from "@atlas/engine";
 import { areaOf, areaOffsets } from "@atlas/shared";
 import type { MatchConnection } from "../net/connection.js";
 import type { MatchSession, SessionSink } from "../net/match-session.js";
@@ -371,6 +377,10 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
       return;
     }
 
+    if (!this.canMove(myUnit)) {
+      this.hud.showMessage("Rooted — cannot move.");
+      return;
+    }
     const path = suggestPath(this.view, myUnit, cell.x, cell.y, this.canClimb(myUnit));
     if (path !== null) {
       this.connection.sendIntent({ type: "Move", unitId: myUnit.id, path });
@@ -384,13 +394,25 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     }
   }
 
-  /** Frozen-style states forbid climbing, so previews must reflect it. */
-  private canClimb(unit: UnitView): boolean {
-    const modifierIds = [
+  /** The stance/state IDs affecting a unit, for the rule-preview helpers. */
+  private modifierIdsOf(unit: UnitView): string[] {
+    return [
       ...(unit.revealedStanceId === null ? [] : [unit.revealedStanceId]),
       ...unit.states.map((instance) => instance.stateId),
     ];
-    return canClimbUnderRules(this.ruleRegistry, modifierIds);
+  }
+
+  /** Preview the same rules the server enforces (Frozen/Rooted/Electrified). */
+  private canClimb(unit: UnitView): boolean {
+    return canClimbUnderRules(this.ruleRegistry, this.modifierIdsOf(unit));
+  }
+
+  private canMove(unit: UnitView): boolean {
+    return canMoveUnderRules(this.ruleRegistry, this.modifierIdsOf(unit));
+  }
+
+  private canCast(unit: UnitView): boolean {
+    return canCastUnderRules(this.ruleRegistry, this.modifierIdsOf(unit));
   }
 
   private myActiveUnit(): UnitView | null {
@@ -539,21 +561,30 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
 
   private refreshIdleUi(): void {
     const myUnit = this.view.units.find((unit) => unit.playerId === this.myPlayerId && unit.alive);
+    const activeUnit = this.myActiveUnit();
+    // An Electrified unit cannot cast, so drop any selection and hide the bar.
+    if (activeUnit !== null && this.selectedSpellId !== null && !this.canCast(activeUnit)) {
+      this.selectedSpellId = null;
+    }
     this.hud.update(
       this.view,
       this.myPlayerId,
       myUnit ?? null,
       this.selectedSpellId,
       this.stanceLocked,
+      activeUnit === null ? true : this.canCast(activeUnit),
     );
 
     this.highlightGraphics.clear();
-    const activeUnit = this.myActiveUnit();
     if (activeUnit === null || this.matchOver) {
       return;
     }
 
     if (this.selectedSpellId === null) {
+      // Rooted units have no reachable cells to show.
+      if (!this.canMove(activeUnit)) {
+        return;
+      }
       for (const reachable of reachableCells(this.view, activeUnit, this.canClimb(activeUnit))) {
         this.fillCell(reachable.coord.x, reachable.coord.y, reachable.coord.z, 0xffffff, 0.18);
       }

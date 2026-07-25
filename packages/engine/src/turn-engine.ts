@@ -226,7 +226,16 @@ function endRound(state: MatchState, registry: RuleModifierRegistry, events: Gam
     for (const damage of roundEndDamageFor(registry, unit)) {
       // Through the same path as spell damage, so the interaction table
       // applies here too (rulebook: Elemental Interactions).
-      applyElementalDamage(state, unit, damage.amount, damage.element, null, null, events);
+      applyElementalDamage(
+        state,
+        registry,
+        unit,
+        damage.amount,
+        damage.element,
+        null,
+        null,
+        events,
+      );
     }
   }
 

@@ -16,6 +16,7 @@ import { applyElementalDamage, applyHeal } from "./combat.js";
 import { hasLineOfSight } from "./line-of-sight.js";
 import { resolvePush } from "./push.js";
 import type { RuleModifierRegistry } from "./rules.js";
+import { canUnitCast } from "./rules.js";
 import { applyStateToCell, applyStateToUnit } from "./states.js";
 import { applyTerrainOnEnter } from "./terrain.js";
 
@@ -53,6 +54,10 @@ export function tryCastSpell(
   const activeId = state.initiativeOrder[state.activeInitiativeIndex];
   if (caster.playerId !== playerId || activeId !== caster.id) {
     return { ok: false, code: "NotYourTurn" };
+  }
+  // Electrified-style states forbid casting outright (rulebook: States).
+  if (!canUnitCast(registry, caster)) {
+    return { ok: false, code: "CastBlocked" };
   }
   const spell = state.registries.spellById.get(intent.spellId);
   const casterClass = state.registries.classById.get(caster.classId);
@@ -114,6 +119,7 @@ export function tryCastSpell(
       if (effect.element === "Physical") {
         applyElementalDamage(
           state,
+          registry,
           unit,
           effect.amount,
           effect.element,
@@ -133,6 +139,7 @@ export function tryCastSpell(
       if (effect.element !== "Physical") {
         applyElementalDamage(
           state,
+          registry,
           unit,
           effect.amount,
           effect.element,
