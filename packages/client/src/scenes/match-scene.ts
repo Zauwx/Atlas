@@ -24,9 +24,50 @@ import type { MatchConnection } from "../net/connection.js";
 import type { MatchSession, SessionSink } from "../net/match-session.js";
 import { MatchView, type UnitView } from "../state/match-view.js";
 import { reachableCells, suggestPath } from "../state/path-suggester.js";
-import { depthOf, isoX, isoY, pickCell, TILE_HEIGHT, TILE_WIDTH, Z_STEP } from "../render/iso.js";
+import {
+  CUBE_SCALE,
+  depthOf,
+  isoX,
+  isoY,
+  pickCell,
+  TILE_HEIGHT,
+  TILE_WIDTH,
+  Z_STEP,
+} from "../render/iso.js";
 import { colorForPlayer, colorForTerrain, shade } from "../render/palette.js";
 import { Hud } from "../ui/hud.js";
+
+/**
+ * Terrains rendered as a Kenney cube sprite (CC0, see public/tiles). Any
+ * terrain not listed here — currently just Void — falls back to the
+ * procedural tile, so the board still renders if a texture is missing.
+ */
+const TERRAIN_TEXTURE: Readonly<Record<string, string>> = {
+  normal: "tile-normal",
+  water: "tile-water",
+  ice: "tile-ice",
+  vegetation: "tile-vegetation",
+  earth: "tile-earth",
+  lava: "tile-lava",
+};
+
+/**
+ * Where a cube sprite's top-face center sits within its frame, as a
+ * fraction of height — so placing the image at isoY lands the walkable
+ * surface under the unit. Tuned visually to the pack's cubes.
+ */
+const CUBE_TOP_ORIGIN_Y = 0.28;
+
+/**
+ * Depth so movement/targeting highlights always read on top of the tiles.
+ * Tile and unit depths come from depthOf (max ~360 on a 12×12), so this
+ * sits well above them.
+ */
+const HIGHLIGHT_DEPTH = 900;
+/** A unit sits just above its own tile top so front tiles still occlude it. */
+const UNIT_DEPTH_BIAS = 0.5;
+/** The active-unit ring sits just under its unit. */
+const MARKER_DEPTH_BIAS = 0.4;
 
 /**
  * The match scene: pure event playback (ARCHITECTURE.md "Client Rendering
@@ -57,10 +98,11 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
   private myPlayerId!: PlayerId;
 
   private boardLayer!: Phaser.GameObjects.Container;
-  private boardGraphics!: Phaser.GameObjects.Graphics;
   private highlightGraphics!: Phaser.GameObjects.Graphics;
   /** A pulsing ring marking whichever unit is currently acting. */
   private activeMarker!: Phaser.GameObjects.Ellipse;
+  /** Per-cell tile objects (cube sprites or procedural graphics), rebuilt on redraw. */
+  private tileObjects: Phaser.GameObjects.GameObject[] = [];
   private readonly unitVisuals = new Map<UnitId, UnitVisual>();
   private hud!: Hud;
 
@@ -89,6 +131,13 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     this.view.loadSnapshot(data.snapshot);
   }
 
+  preload(): void {
+    // Kenney CC0 terrain cubes served from public/tiles.
+    for (const key of Object.values(TERRAIN_TEXTURE)) {
+      this.load.image(key, `tiles/${key}.png`);
+    }
+  }
+
   create(): void {
     const boardPixelCenterX = isoX(this.view.width - 1, 0) / 2 + isoX(0, this.view.height - 1) / 2;
     const boardPixelCenterY = isoY(this.view.width - 1, this.view.height - 1, 0) / 2;
@@ -96,12 +145,13 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
       this.scale.width / 2 - boardPixelCenterX,
       this.scale.height / 2 - boardPixelCenterY - 30,
     );
-    this.boardGraphics = this.add.graphics();
+    // Tiles are added directly to the board layer with per-cube depth, so
+    // units (also depth-sorted) occlude and are occluded correctly.
     this.highlightGraphics = this.add.graphics();
+    this.highlightGraphics.setDepth(HIGHLIGHT_DEPTH);
     this.activeMarker = this.add.ellipse(0, 0, TILE_WIDTH * 0.7, TILE_HEIGHT * 0.7, 0xffe066, 0.28);
     this.activeMarker.setStrokeStyle(2, 0xffe066, 0.9);
     this.activeMarker.setVisible(false);
-    this.boardLayer.add(this.boardGraphics);
     this.boardLayer.add(this.highlightGraphics);
     this.boardLayer.add(this.activeMarker);
     // A slow pulse so the acting unit is easy to find at a glance.
@@ -439,20 +489,39 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
 
   // --- Rendering ---
 
+  /**
+   * Rebuilds the board. Mapped terrains render as stacked Kenney cube
+   * sprites (a column from the ground up to the cell's height, so the
+   * sides form a cliff); Void and any unmapped terrain fall back to a
+   * procedural diamond. Each object carries its own depthOf so units
+   * interleave correctly with elevated terrain.
+   */
   private drawBoard(): void {
-    const graphics = this.boardGraphics;
-    graphics.clear();
-    const sorted = [...this.view.cells].sort(
-      (a, b) => depthOf(a.x, a.y, a.z) - depthOf(b.x, b.y, b.z),
-    );
-    for (const cell of sorted) {
-      this.drawTile(
-        graphics,
-        cell.terrainId,
-        isoX(cell.x, cell.y),
-        isoY(cell.x, cell.y, cell.z),
-        cell.z,
-      );
+    for (const object of this.tileObjects) {
+      object.destroy();
+    }
+    this.tileObjects = [];
+
+    for (const cell of this.view.cells) {
+      const textureKey = TERRAIN_TEXTURE[cell.terrainId];
+      const centerX = isoX(cell.x, cell.y);
+
+      if (textureKey !== undefined && this.textures.exists(textureKey)) {
+        for (let level = 0; level <= cell.z; level += 1) {
+          const cube = this.add.image(centerX, isoY(cell.x, cell.y, level), textureKey);
+          cube.setScale(CUBE_SCALE);
+          cube.setOrigin(0.5, CUBE_TOP_ORIGIN_Y);
+          cube.setDepth(depthOf(cell.x, cell.y, level));
+          this.boardLayer.add(cube);
+          this.tileObjects.push(cube);
+        }
+      } else {
+        const graphics = this.add.graphics();
+        this.drawTile(graphics, cell.terrainId, centerX, isoY(cell.x, cell.y, cell.z), cell.z);
+        graphics.setDepth(depthOf(cell.x, cell.y, cell.z));
+        this.boardLayer.add(graphics);
+        this.tileObjects.push(graphics);
+      }
     }
   }
 
@@ -660,7 +729,9 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
       [token, healthBar],
     );
     this.boardLayer.add(container);
-    container.setDepth(depthOf(unit.position.x, unit.position.y, unit.position.z) + 8);
+    container.setDepth(
+      depthOf(unit.position.x, unit.position.y, unit.position.z) + UNIT_DEPTH_BIAS,
+    );
     this.unitVisuals.set(unit.id, { container, healthBar });
     this.redrawHealthBar(unit);
   }
@@ -704,7 +775,7 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
         done();
         return;
       }
-      visual.container.setDepth(depthOf(target.x, target.y, target.z) + 8);
+      visual.container.setDepth(depthOf(target.x, target.y, target.z) + UNIT_DEPTH_BIAS);
       this.tweens.add({
         targets: visual.container,
         x: isoX(target.x, target.y),
@@ -743,6 +814,9 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
       this.activeMarker.setPosition(
         isoX(acting.position.x, acting.position.y),
         isoY(acting.position.x, acting.position.y, acting.position.z) + 2,
+      );
+      this.activeMarker.setDepth(
+        depthOf(acting.position.x, acting.position.y, acting.position.z) + MARKER_DEPTH_BIAS,
       );
     } else {
       this.activeMarker.setVisible(false);

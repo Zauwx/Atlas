@@ -18,3 +18,7 @@ coverage/
 Thumbs.db
 .idea/
 *.swp
+
+# Raw asset pack — only the extracted, renamed tiles in
+# packages/client/public/tiles are committed (see its ATTRIBUTION.md).
+kenney_isometric-blocks/

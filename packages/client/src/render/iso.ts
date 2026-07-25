@@ -6,8 +6,18 @@
 
 export const TILE_WIDTH = 64;
 export const TILE_HEIGHT = 32;
-/** Vertical pixels per z level (the terrace extrusion height). */
-export const Z_STEP = 20;
+/**
+ * Vertical pixels per z level. Set to the on-screen height of one stacked
+ * Kenney cube so sprite terraces and everything positioned by isoY (units,
+ * markers) rise together by exactly one block per level.
+ */
+export const Z_STEP = 37;
+
+/** Native Kenney "Isometric Blocks" voxel cube size, in pixels. */
+export const CUBE_NATIVE_WIDTH = 111;
+export const CUBE_NATIVE_HEIGHT = 128;
+/** Scale that makes a cube's top diamond exactly TILE_WIDTH × TILE_HEIGHT. */
+export const CUBE_SCALE = TILE_WIDTH / CUBE_NATIVE_WIDTH;
 
 export function isoX(x: number, y: number): number {
   return ((x - y) * TILE_WIDTH) / 2;
