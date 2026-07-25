@@ -6,6 +6,7 @@ import type {
   StateId,
   TerrainId,
 } from "@atlas/shared";
+import { areaOf } from "@atlas/shared";
 
 /**
  * Turns configuration into player-readable text — GAME_DESIGN.md
@@ -112,10 +113,12 @@ export function describeSpell(spell: SpellConfig, config: GameConfig): string {
     spell.minRange === spell.maxRange
       ? `range ${String(spell.maxRange)}`
       : `range ${String(spell.minRange)}-${String(spell.maxRange)}`;
+  const area = areaOf(spell);
   const segments = [
     spell.name,
     `${String(spell.actionPointCost)} AP`,
     range,
+    ...(area.kind === "Single" ? [] : [`${area.kind.toLowerCase()} ${String(area.radius)}`]),
     spell.requiresLineOfSight ? "line of sight" : "no line of sight needed",
     describeSpellEffects(spell, config),
   ];

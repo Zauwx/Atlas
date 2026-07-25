@@ -32,6 +32,7 @@ export * from "./config/elemental-interaction-config.js";
 export * from "./config/state-config.js";
 export * from "./config/terrain-config.js";
 export * from "./config/stance-config.js";
+export * from "./config/area-config.js";
 export * from "./config/spell-config.js";
 export * from "./config/class-config.js";
 export * from "./config/map-config.js";

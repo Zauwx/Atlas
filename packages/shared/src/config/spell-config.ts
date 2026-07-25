@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AreaShapeSchema, SINGLE_CELL_AREA, type AreaShape } from "./area-config.js";
 import { ElementSchema } from "../enums/element.js";
 import { SpellIdSchema, StateIdSchema, TerrainIdSchema } from "../ids.js";
 
@@ -52,6 +53,11 @@ export const SpellConfigSchema = z
     minRange: z.number().int().nonnegative(),
     maxRange: z.number().int().nonnegative(),
     requiresLineOfSight: z.boolean(),
+    /**
+     * Area around the target cell (COMBAT_RULEBOOK.md "Area of effect").
+     * Omitted means a single cell, so existing content needs no change.
+     */
+    area: AreaShapeSchema.optional(),
     effects: z.array(SpellEffectConfigSchema).min(1),
   })
   .refine((spell) => spell.maxRange >= spell.minRange, {
@@ -59,3 +65,8 @@ export const SpellConfigSchema = z
   });
 
 export type SpellConfig = z.infer<typeof SpellConfigSchema>;
+
+/** A spell's area, defaulting to the single target cell. */
+export function areaOf(spell: SpellConfig): AreaShape {
+  return spell.area ?? SINGLE_CELL_AREA;
+}

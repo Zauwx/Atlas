@@ -1,5 +1,7 @@
 import type {
+  AreaShape,
   CastSpellIntent,
+  CellCoord,
   Direction,
   GameEvent,
   IntentErrorCode,
@@ -7,7 +9,8 @@ import type {
   SpellConfig,
   SpellEffectConfig,
 } from "@atlas/shared";
-import type { MatchState, UnitRuntime } from "./match-state.js";
+import { areaOf, areaOffsets } from "@atlas/shared";
+import type { CellRuntime, MatchState, UnitRuntime } from "./match-state.js";
 import { cellAt, isInBounds, livingUnitAt, manhattanDistance, unitById } from "./board.js";
 import { applyElementalDamage, applyHeal } from "./combat.js";
 import { hasLineOfSight } from "./line-of-sight.js";
@@ -83,27 +86,35 @@ export function tryCastSpell(
   caster.currentActionPoints -= spell.actionPointCost;
 
   // Step 3 — target selection, locked for the whole resolution.
-  const targetUnit = livingUnitAt(state, intent.target.x, intent.target.y);
+  // The area is resolved once, row-major, and every step below walks it in
+  // that same order (COMBAT_RULEBOOK.md "Area of effect").
+  const affectedCells = areaCells(state, areaOf(spell), intent.target);
+  const affectedUnits = affectedCells
+    .map((cell) => livingUnitAt(state, cell.x, cell.y))
+    .filter((unit): unit is UnitRuntime => unit !== null);
 
   // Steps 4–5 — stance and terrain modifier hooks (registry-driven; the
   // push distance hook applies inside resolvePush).
 
-  // Steps 8–10 — pushes, collisions, falls.
-  if (targetUnit !== null && pushDirection !== null) {
+  // Steps 8–10 — pushes, collisions, falls. Every unit in the area is
+  // shoved along the same caster → target axis.
+  if (pushDirection !== null) {
     for (const effect of effectsOfKind(spell, "Push")) {
-      if (targetUnit.alive && !targetUnit.fellIntoBottomless) {
-        resolvePush(state, registry, caster, targetUnit, pushDirection, effect.distance, events);
+      for (const unit of affectedUnits) {
+        if (unit.alive && !unit.fellIntoBottomless) {
+          resolvePush(state, registry, caster, unit, pushDirection, effect.distance, events);
+        }
       }
     }
   }
 
   // Step 11 — direct (Physical) damage, then heals (rulebook Edge Cases).
-  if (targetUnit !== null) {
+  for (const unit of affectedUnits) {
     for (const effect of effectsOfKind(spell, "Damage")) {
       if (effect.element === "Physical") {
         applyElementalDamage(
           state,
-          targetUnit,
+          unit,
           effect.amount,
           effect.element,
           caster.id,
@@ -113,14 +124,16 @@ export function tryCastSpell(
       }
     }
     for (const effect of effectsOfKind(spell, "Heal")) {
-      applyHeal(state, targetUnit, effect.amount, caster.id, spell.id, events);
+      applyHeal(state, unit, effect.amount, caster.id, spell.id, events);
     }
-    // Step 12 — elemental damage.
+  }
+  // Step 12 — elemental damage.
+  for (const unit of affectedUnits) {
     for (const effect of effectsOfKind(spell, "Damage")) {
       if (effect.element !== "Physical") {
         applyElementalDamage(
           state,
-          targetUnit,
+          unit,
           effect.amount,
           effect.element,
           caster.id,
@@ -133,24 +146,30 @@ export function tryCastSpell(
 
   // Step 13 — state application (falls back to the cell when unoccupied).
   for (const effect of effectsOfKind(spell, "ApplyState")) {
-    if (targetUnit !== null) {
-      applyStateToUnit(
-        state,
-        targetUnit,
-        effect.stateId,
-        effect.duration,
-        caster.id,
-        spell.id,
-        events,
-      );
-    } else {
-      applyStateToCell(targetCell, effect.stateId, effect.duration, caster.id, spell.id, events);
+    for (const cell of affectedCells) {
+      const occupant = livingUnitAt(state, cell.x, cell.y);
+      if (occupant !== null) {
+        applyStateToUnit(
+          state,
+          occupant,
+          effect.stateId,
+          effect.duration,
+          caster.id,
+          spell.id,
+          events,
+        );
+      } else {
+        applyStateToCell(cell, effect.stateId, effect.duration, caster.id, spell.id, events);
+      }
     }
   }
 
-  // Step 14 — terrain transformation.
+  // Step 14 — terrain transformation, across the whole area.
   for (const effect of effectsOfKind(spell, "TransformTerrain")) {
-    if (targetCell.terrainId !== effect.toTerrainId) {
+    for (const targetCell of affectedCells) {
+      if (targetCell.terrainId === effect.toTerrainId) {
+        continue;
+      }
       const fromTerrainId = targetCell.terrainId;
       targetCell.terrainId = effect.toTerrainId;
       events.push({
@@ -171,6 +190,24 @@ export function tryCastSpell(
   // defined yet (rulebook Open Questions); deliberately no-ops.
 
   return { ok: true };
+}
+
+/**
+ * The in-bounds cells a spell's area covers, row-major
+ * (COMBAT_RULEBOOK.md "Area of effect"). Line of sight was already
+ * checked against the target cell; the shape fills regardless of what
+ * stands inside it.
+ */
+function areaCells(state: MatchState, shape: AreaShape, target: CellCoord): CellRuntime[] {
+  const cells: CellRuntime[] = [];
+  for (const offset of areaOffsets(shape)) {
+    const x = target.x + offset.dx;
+    const y = target.y + offset.dy;
+    if (isInBounds(state, x, y)) {
+      cells.push(cellAt(state, x, y));
+    }
+  }
+  return cells;
 }
 
 function spellHasPush(spell: SpellConfig): boolean {

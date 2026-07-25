@@ -34,6 +34,7 @@ export const SPELL_ID_GROUND_SLAM = SpellIdSchema.parse("ground-slam");
 export const SPELL_ID_WATER_JET = SpellIdSchema.parse("water-jet");
 export const SPELL_ID_FLOOD = SpellIdSchema.parse("flood");
 export const SPELL_ID_DRENCH = SpellIdSchema.parse("drench");
+export const SPELL_ID_TIDAL_SURGE = SpellIdSchema.parse("tidal-surge");
 
 export const V1_MAP_ID = MapIdSchema.parse("ridge-and-pools");
 
@@ -73,7 +74,7 @@ export const V1_GAME_CONFIG: GameConfig = {
       baseHealthPoints: 90,
       baseActionPoints: 6,
       baseMovementPoints: 4,
-      spellIds: [SPELL_ID_WATER_JET, SPELL_ID_FLOOD, SPELL_ID_DRENCH],
+      spellIds: [SPELL_ID_WATER_JET, SPELL_ID_FLOOD, SPELL_ID_DRENCH, SPELL_ID_TIDAL_SURGE],
     },
   ],
   spells: [
@@ -136,6 +137,19 @@ export const V1_GAME_CONFIG: GameConfig = {
       minRange: 1,
       maxRange: 3,
       requiresLineOfSight: false,
+      effects: [{ kind: "TransformTerrain", toTerrainId: TERRAIN_ID_WATER }],
+    },
+    {
+      id: SPELL_ID_TIDAL_SURGE,
+      name: "Tidal Surge",
+      description:
+        "Floods a whole area. Cast at range 1 it catches your own cell, soaking you deliberately.",
+      element: "Water",
+      actionPointCost: 3,
+      minRange: 1,
+      maxRange: 4,
+      requiresLineOfSight: false,
+      area: { kind: "Circle", radius: 1 },
       effects: [{ kind: "TransformTerrain", toTerrainId: TERRAIN_ID_WATER }],
     },
     {

@@ -175,6 +175,25 @@ Units do not block line of sight (no rule currently says they do; changing this 
 
 Every spell follows exactly the same pipeline. No spell can bypass it.
 
+### Area of effect
+
+A spell declares an **area shape**, applied around the target cell:
+
+- **Single** — the target cell only. The default, and what every spell without a declared area uses.
+- **Cross** — the target cell plus every cell reachable within `radius` steps along the two axes (no diagonals).
+- **Circle** — every cell within `radius` Manhattan distance of the target cell.
+
+Rules:
+
+- **Line of sight is checked once, to the target cell.** The area then fills its shape regardless of what stands inside it, so a spell can be lobbed just past a corner.
+- **Every unit in the area is affected, including the caster and allies.** The engine does not distinguish sides; positioning before casting is the cost of an area spell.
+- **Effects apply in full to every affected cell.** There is no falloff with distance — a player must be able to compute the outcome mentally (see BALANCE_GUIDELINES.md).
+- Cells outside the board are simply not part of the area.
+- **Resolution order is row-major** (y ascending, then x ascending) over the affected cells, so the same cast always produces the same event sequence.
+- Range, cost and line-of-sight validation all still apply to the **target cell** exactly as for a single-cell spell.
+- Effects that act on a cell rather than a unit (terrain transformation, cell states) apply to every cell in the area.
+- A push inside an area uses the caster → target axis for **all** affected units, not a per-unit direction, so the whole area is shoved the same way.
+
 ---
 
 ## Resolution Pipeline
@@ -500,7 +519,6 @@ The following invariants must never be violated:
 ## Open Questions
 
 - **Collision damage to the blocking unit:** when a push is interrupted by another unit, does the blocker also take damage? (Currently: only the pushed unit takes collision damage.)
-- **Area-of-effect spells:** the current pipeline targets a single cell. AoE shapes (cross, circle, line) are not yet specified.
 - **AP/MP/HP baseline values:** per-class values are configuration, tracked by [BALANCE_GUIDELINES.md](BALANCE_GUIDELINES.md); the rulebook only fixes the mechanics.
 - **Healing and Shielded interaction:** does Shielded absorb damage before or after elemental computation (pipeline steps 11–12)?
 - **Exact effects of the remaining initial states** (Electrified, Shielded, Rooted): precise rule modifications must be specified (and added here) before any of them is implemented as an engine rule. Wet, Burning, and Frozen are defined (see States).

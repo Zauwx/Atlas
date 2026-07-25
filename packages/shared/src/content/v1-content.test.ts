@@ -9,10 +9,10 @@ describe("V1 game config", () => {
     expect(findGameConfigReferenceErrors(V1_GAME_CONFIG)).toEqual([]);
   });
 
-  it("ships exactly the V1 roster: 3 stances, 2 classes, 6 spells", () => {
+  it("ships exactly the V1 roster: 3 stances, 2 classes, 7 spells", () => {
     expect(V1_GAME_CONFIG.stances).toHaveLength(3);
     expect(V1_GAME_CONFIG.classes).toHaveLength(2);
-    expect(V1_GAME_CONFIG.spells).toHaveLength(6);
+    expect(V1_GAME_CONFIG.spells).toHaveLength(7);
   });
 
   it("respects the balance baselines (HP 90–110, AP 6, MP 3–4)", () => {

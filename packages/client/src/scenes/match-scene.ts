@@ -13,6 +13,7 @@ import type {
   UnitId,
 } from "@atlas/shared";
 import { canClimbUnderRules, createV1RuleRegistry, hasLineOfSightOverHeights } from "@atlas/engine";
+import { areaOf, areaOffsets } from "@atlas/shared";
 import type { MatchConnection } from "../net/connection.js";
 import type { MatchSession, SessionSink } from "../net/match-session.js";
 import { MatchView, type UnitView } from "../state/match-view.js";
@@ -64,6 +65,8 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
   private readonly eventQueue: GameEvent[] = [];
   private animating = false;
   private selectedSpellId: SpellId | null = null;
+  /** Cell under the cursor, used to preview an area spell's footprint. */
+  private hoveredCell: { x: number; y: number } | null = null;
   private stanceLocked = false;
   private matchOver = false;
 
@@ -114,6 +117,25 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
 
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
       this.handlePointerDown(pointer);
+    });
+    this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
+      const cell = pickCell(
+        this.view.cells,
+        pointer.x - this.boardLayer.x,
+        pointer.y - this.boardLayer.y,
+      );
+      const next = cell === null ? null : { x: cell.x, y: cell.y };
+      const changed =
+        (next === null) !== (this.hoveredCell === null) ||
+        (next !== null &&
+          this.hoveredCell !== null &&
+          (next.x !== this.hoveredCell.x || next.y !== this.hoveredCell.y));
+      if (changed) {
+        this.hoveredCell = next;
+        if (this.selectedSpellId !== null) {
+          this.refreshIdleUi();
+        }
+      }
     });
 
     this.session.attach(this);
@@ -571,6 +593,25 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
           z: cell.z,
         });
       this.fillCell(cell.x, cell.y, cell.z, blocked ? 0xff5e5e : 0xffb347, blocked ? 0.12 : 0.3);
+    }
+
+    // The blast footprint under the cursor, so an area spell shows exactly
+    // what it will cover before it is committed.
+    const area = areaOf(spell);
+    if (area.kind === "Single" || this.hoveredCell === null) {
+      return;
+    }
+    const aim = this.hoveredCell;
+    const inRange =
+      Math.abs(aim.x - activeUnit.position.x) + Math.abs(aim.y - activeUnit.position.y);
+    if (inRange < spell.minRange || inRange > spell.maxRange) {
+      return;
+    }
+    for (const offset of areaOffsets(area)) {
+      const cell = this.view.cellAt(aim.x + offset.dx, aim.y + offset.dy);
+      if (cell !== null) {
+        this.fillCell(cell.x, cell.y, cell.z, 0xffffff, 0.32);
+      }
     }
   }
 
