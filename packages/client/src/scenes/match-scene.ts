@@ -87,6 +87,8 @@ export interface MatchSceneData {
 interface UnitVisual {
   container: Phaser.GameObjects.Container;
   healthBar: Phaser.GameObjects.Graphics;
+  /** Row of active-state badges, rebuilt whenever the unit's states change. */
+  states: Phaser.GameObjects.Container;
 }
 
 const MOVE_MS_PER_CELL = 140;
@@ -115,6 +117,12 @@ const STATE_COLORS: Readonly<Record<string, number>> = {
   electrified: 0xffe14e,
   shielded: 0xbcd4ff,
 };
+
+/**
+ * The absorbing state gets extra emphasis (an outline hugging the health
+ * bar), since it protects the very points shown there.
+ */
+const SHIELD_STATE_ID = "shielded";
 
 /** Friendlier text for the rejection codes a player runs into most. */
 const REJECTION_MESSAGES: Readonly<Partial<Record<string, string>>> = {
@@ -477,6 +485,8 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
           if (unit !== null) {
             at = this.surfaceXY(unit.position.x, unit.position.y, unit.position.z);
           }
+          // Persist the badge now that the state is on the unit.
+          this.syncUnitVisual(event.target.unitId);
         } else {
           at = this.surfaceXY(event.target.coord.x, event.target.coord.y, event.target.coord.z);
         }
@@ -486,7 +496,14 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
         this.time.delayedCall(140, done);
         return;
       }
-      case "RemoveState":
+      case "RemoveState": {
+        // Clear the badge (and any shield outline) the moment it wears off.
+        if (event.target.kind === "Unit") {
+          this.syncUnitVisual(event.target.unitId);
+        }
+        this.time.delayedCall(60, done);
+        return;
+      }
       case "TurnStarted":
       case "TurnEnded": {
         this.time.delayedCall(60, done);
@@ -804,17 +821,19 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     token.strokeCircle(0, -11, 12);
 
     const healthBar = this.add.graphics();
+    const states = this.add.container(0, 0);
     const container = this.add.container(
       isoX(unit.position.x, unit.position.y),
       isoY(unit.position.x, unit.position.y, unit.position.z),
-      [token, healthBar],
+      [token, healthBar, states],
     );
     this.boardLayer.add(container);
     container.setDepth(
       depthOf(unit.position.x, unit.position.y, unit.position.z) + UNIT_DEPTH_BIAS,
     );
-    this.unitVisuals.set(unit.id, { container, healthBar });
+    this.unitVisuals.set(unit.id, { container, healthBar, states });
     this.redrawHealthBar(unit);
+    this.redrawStates(unit);
   }
 
   private redrawHealthBar(unit: UnitView): void {
@@ -829,12 +848,56 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     graphics.fillRoundedRect(-16, -36, 32, 6, 2);
     graphics.fillStyle(ratio > 0.5 ? 0x66e08a : ratio > 0.25 ? 0xffcf6b : 0xff6a6a);
     graphics.fillRoundedRect(-15, -35, Math.max(0, 30 * ratio), 4, 2);
+    // A shielded unit's health is guarded: outline the bar so it reads at a
+    // glance that these points are protected.
+    if (unit.states.some((state) => state.stateId === SHIELD_STATE_ID)) {
+      graphics.lineStyle(1.5, STATE_COLORS[SHIELD_STATE_ID] ?? 0xbcd4ff, 0.95);
+      graphics.strokeRoundedRect(-18, -38, 36, 10, 3);
+    }
+  }
+
+  /**
+   * A row of small colored badges above the health bar — one per active
+   * state, lettered by its name — so a unit's status is always visible, not
+   * only in the flash when it lands.
+   */
+  private redrawStates(unit: UnitView): void {
+    const visual = this.unitVisuals.get(unit.id);
+    if (visual === undefined) {
+      return;
+    }
+    visual.states.removeAll(true);
+    const badgeWidth = 12;
+    const gap = 2;
+    const count = unit.states.length;
+    const totalWidth = count * badgeWidth + (count - 1) * gap;
+    let x = -totalWidth / 2 + badgeWidth / 2;
+    const y = -46;
+    for (const state of unit.states) {
+      const color = STATE_COLORS[state.stateId] ?? 0xffffff;
+      const badge = this.add.graphics();
+      badge.fillStyle(color, 0.95);
+      badge.fillRoundedRect(x - badgeWidth / 2, y - 6, badgeWidth, 12, 3);
+      badge.lineStyle(1, 0x0e1420, 0.9);
+      badge.strokeRoundedRect(x - badgeWidth / 2, y - 6, badgeWidth, 12, 3);
+      const name = this.view.config.states.find((entry) => entry.id === state.stateId)?.name ?? "?";
+      const letter = this.add
+        .text(x, y, name.charAt(0).toUpperCase(), {
+          fontSize: "10px",
+          color: "#0e1420",
+          fontStyle: "bold",
+        })
+        .setOrigin(0.5);
+      visual.states.add([badge, letter]);
+      x += badgeWidth + gap;
+    }
   }
 
   private syncUnitVisual(unitId: UnitId): void {
     const unit = this.view.unitById(unitId);
     if (unit !== null) {
       this.redrawHealthBar(unit);
+      this.redrawStates(unit);
     }
   }
 
