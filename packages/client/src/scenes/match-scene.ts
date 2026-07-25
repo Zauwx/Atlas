@@ -25,7 +25,8 @@ import type { MatchSession, SessionSink } from "../net/match-session.js";
 import { MatchView, type UnitView } from "../state/match-view.js";
 import { reachableCells, suggestPath } from "../state/path-suggester.js";
 import {
-  CUBE_SCALE,
+  CUBE_SCALE_X,
+  CUBE_SCALE_Y,
   depthOf,
   isoX,
   isoY,
@@ -54,9 +55,10 @@ const TERRAIN_TEXTURE: Readonly<Record<string, string>> = {
 /**
  * Where a cube sprite's top-face center sits within its frame, as a
  * fraction of height — so placing the image at isoY lands the walkable
- * surface under the unit. Tuned visually to the pack's cubes.
+ * surface under the unit. Measured from the pack's cubes: the top-diamond
+ * center is 32px down a 128px frame.
  */
-const CUBE_TOP_ORIGIN_Y = 0.28;
+const CUBE_TOP_ORIGIN_Y = 0.25;
 
 /**
  * Depth so movement/targeting highlights always read on top of the tiles.
@@ -607,7 +609,7 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
       if (textureKey !== undefined && this.textures.exists(textureKey)) {
         for (let level = 0; level <= cell.z; level += 1) {
           const cube = this.add.image(centerX, isoY(cell.x, cell.y, level), textureKey);
-          cube.setScale(CUBE_SCALE);
+          cube.setScale(CUBE_SCALE_X, CUBE_SCALE_Y);
           cube.setOrigin(0.5, CUBE_TOP_ORIGIN_Y);
           cube.setDepth(depthOf(cell.x, cell.y, level));
           this.boardLayer.add(cube);

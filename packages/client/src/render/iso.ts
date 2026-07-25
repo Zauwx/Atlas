@@ -6,18 +6,30 @@
 
 export const TILE_WIDTH = 64;
 export const TILE_HEIGHT = 32;
-/**
- * Vertical pixels per z level. Set to the on-screen height of one stacked
- * Kenney cube so sprite terraces and everything positioned by isoY (units,
- * markers) rise together by exactly one block per level.
- */
-export const Z_STEP = 37;
 
-/** Native Kenney "Isometric Blocks" voxel cube size, in pixels. */
+/** Native Kenney "Isometric Blocks" voxel cube frame, in pixels. */
 export const CUBE_NATIVE_WIDTH = 111;
 export const CUBE_NATIVE_HEIGHT = 128;
-/** Scale that makes a cube's top diamond exactly TILE_WIDTH × TILE_HEIGHT. */
-export const CUBE_SCALE = TILE_WIDTH / CUBE_NATIVE_WIDTH;
+/**
+ * The pack's cubes are TRUE isometric: their top diamond measures
+ * 111 × 64 (a √3:1 rhombus) and each side face is 64 native tall. The
+ * board grid, however, is 2:1 dimetric (TILE_WIDTH × TILE_HEIGHT = 64 ×
+ * 32). Scaling the cube uniformly would leave the top face 64 × 37 — too
+ * tall for a 32px grid row — so tops overflowed their cells and flat
+ * ground looked stepped. The cube is therefore scaled NON-uniformly to
+ * seat its top diamond exactly on the grid; the slight vertical squash is
+ * invisible on terrain while every top now tessellates cleanly.
+ */
+export const CUBE_NATIVE_TOP_HEIGHT = 64;
+export const CUBE_SCALE_X = TILE_WIDTH / CUBE_NATIVE_WIDTH;
+export const CUBE_SCALE_Y = TILE_HEIGHT / CUBE_NATIVE_TOP_HEIGHT;
+
+/**
+ * Vertical pixels per z level: one scaled cube side face, so sprite
+ * terraces and everything positioned by isoY (units, markers) rise
+ * together by exactly one block per level.
+ */
+export const Z_STEP = CUBE_NATIVE_TOP_HEIGHT * CUBE_SCALE_Y;
 
 export function isoX(x: number, y: number): number {
   return ((x - y) * TILE_WIDTH) / 2;
