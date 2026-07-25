@@ -91,6 +91,17 @@ interface UnitVisual {
 
 const MOVE_MS_PER_CELL = 140;
 
+/** Friendlier text for the rejection codes a player runs into most. */
+const REJECTION_MESSAGES: Readonly<Partial<Record<string, string>>> = {
+  NoTargetInArea: "No target there — no AP spent.",
+  OutOfRange: "Out of range.",
+  NoLineOfSight: "No line of sight.",
+  NotEnoughActionPoints: "Not enough AP.",
+  NotEnoughMovementPoints: "Not enough MP.",
+  CastBlocked: "Electrified — cannot cast.",
+  MovementBlocked: "Rooted — cannot move.",
+};
+
 export class MatchScene extends Phaser.Scene implements SessionSink {
   private connection!: MatchConnection;
   private session!: MatchSession;
@@ -234,7 +245,7 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
   }
 
   onRejection(rejection: IntentRejection): void {
-    this.hud.showMessage(`Rejected: ${rejection.code}`);
+    this.hud.showMessage(REJECTION_MESSAGES[rejection.code] ?? `Rejected: ${rejection.code}`);
   }
 
   onPlayerConnection(message: PlayerConnectionMessage): void {

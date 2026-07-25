@@ -100,6 +100,44 @@ describe("spell resolution (rulebook: Resolution Pipeline)", () => {
     }
   });
 
+  it("refuses a unit-only spell aimed at an empty tile, and spends no AP", () => {
+    // Strike (Damage only) at an in-range, empty, visible cell would fizzle;
+    // the cast is rejected up front so AP is not silently drained.
+    const sim = createTestSim({ unit2: { x: 6, y: 6, z: 0 } });
+    const result = sim.handleIntent(PLAYER_1, {
+      type: "CastSpell",
+      unitId: UNIT_1,
+      spellId: SPELL_STRIKE,
+      target: { x: 2, y: 1, z: 0 },
+    });
+    expect(result).toMatchObject({ accepted: false, rejection: { code: "NoTargetInArea" } });
+    // Full AP retained (test class starts at 6).
+    expect(sim.getSnapshot().units.find((unit) => unit.id === UNIT_1)?.currentActionPoints).toBe(6);
+  });
+
+  it("refuses a push aimed at an empty tile (no AP spent)", () => {
+    const sim = createTestSim({ unit2: { x: 6, y: 6, z: 0 } });
+    const result = sim.handleIntent(PLAYER_1, {
+      type: "CastSpell",
+      unitId: UNIT_1,
+      spellId: SPELL_GUST,
+      target: { x: 3, y: 1, z: 0 },
+    });
+    expect(result).toMatchObject({ accepted: false, rejection: { code: "NoTargetInArea" } });
+    expect(sim.getSnapshot().units.find((unit) => unit.id === UNIT_1)?.currentActionPoints).toBe(6);
+  });
+
+  it("still allows a terrain-transforming spell on an empty tile", () => {
+    const sim = createTestSim({ unit2: { x: 6, y: 6, z: 0 } });
+    const result = sim.handleIntent(PLAYER_1, {
+      type: "CastSpell",
+      unitId: UNIT_1,
+      spellId: SPELL_QUAKE,
+      target: { x: 2, y: 1, z: 0 },
+    });
+    expect(result.accepted).toBe(true);
+  });
+
   it("transforms terrain and applies the new terrain's states to the occupant", () => {
     const sim = createTestSim({ unit2: { x: 3, y: 1, z: 0 } });
     const result = sim.handleIntent(PLAYER_1, {

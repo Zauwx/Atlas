@@ -493,7 +493,8 @@ Every ambiguous rule must be documented in this section. No implicit decision is
 
 - **State re-application:** applying a state a unit or cell already has replaces the remaining duration with the new one (no stacking).
 - **Heal resolution:** heal effects resolve at pipeline step 11, alongside direct damage.
-- **Unit-targeted effects on an empty cell:** Damage, Heal, and Push effects fizzle (no event) if no unit occupies the target cell. ApplyState falls back to applying the state to the **cell** itself.
+- **Unit-targeted effects on an empty cell:** Damage, Heal, and Push apply only to a unit. ApplyState falls back to applying the state to the **cell** itself, and TransformTerrain always acts on the cell.
+- **A cast that would do nothing is rejected before its cost is paid:** if every one of a spell's effects is unit-targeted (Damage, Heal, Push) and no living unit lies in the affected area, the cast is refused (rejection code `NoTargetInArea`) and no AP is spent. A spell with any cell-acting effect (ApplyState, TransformTerrain) always resolves. This spares the caster from silently wasting AP on an empty tile.
 - **Push targeting:** a push effect requires the target cell to be axis-aligned with the caster (same row or column) and distinct from the caster's cell; otherwise the cast is rejected as InvalidTarget. The push direction is caster → target.
 - **Terrain transformation under a unit:** the new terrain immediately applies its configured states to the occupant. Transforming the ground under a unit into a bottomless terrain makes the unit fall to its death.
 - **Active unit dies during its own action** (e.g. voluntary fall): after the resolution completes, its turn ends automatically.

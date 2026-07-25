@@ -87,16 +87,22 @@ export function tryCastSpell(
     return { ok: false, code: "InvalidTarget" };
   }
 
-  // Step 2 — cost payment.
-  caster.currentActionPoints -= spell.actionPointCost;
-
-  // Step 3 — target selection, locked for the whole resolution.
-  // The area is resolved once, row-major, and every step below walks it in
-  // that same order (COMBAT_RULEBOOK.md "Area of effect").
+  // Target selection is resolved once, row-major, and every step below
+  // walks it in that same order (COMBAT_RULEBOOK.md "Area of effect").
   const affectedCells = areaCells(state, areaOf(spell), intent.target);
   const affectedUnits = affectedCells
     .map((cell) => livingUnitAt(state, cell.x, cell.y))
     .filter((unit): unit is UnitRuntime => unit !== null);
+
+  // Rulebook Edge Cases: a cast whose every effect is unit-targeted is
+  // refused (no AP spent) when no unit is in the area, so a miss on an
+  // empty tile never silently drains AP. Cell-acting effects still resolve.
+  if (affectedUnits.length === 0 && !spellHasCellEffect(spell)) {
+    return { ok: false, code: "NoTargetInArea" };
+  }
+
+  // Step 2 — cost payment.
+  caster.currentActionPoints -= spell.actionPointCost;
 
   // Steps 4–5 — stance and terrain modifier hooks (registry-driven; the
   // push distance hook applies inside resolvePush).
@@ -219,6 +225,17 @@ function areaCells(state: MatchState, shape: AreaShape, target: CellCoord): Cell
 
 function spellHasPush(spell: SpellConfig): boolean {
   return spell.effects.some((effect) => effect.kind === "Push");
+}
+
+/**
+ * Whether any effect acts on the cell itself (ApplyState falls back to the
+ * cell; TransformTerrain always changes it), so the cast does something
+ * even on an empty tile.
+ */
+function spellHasCellEffect(spell: SpellConfig): boolean {
+  return spell.effects.some(
+    (effect) => effect.kind === "ApplyState" || effect.kind === "TransformTerrain",
+  );
 }
 
 type EffectOfKind<K extends SpellEffectConfig["kind"]> = Extract<SpellEffectConfig, { kind: K }>;

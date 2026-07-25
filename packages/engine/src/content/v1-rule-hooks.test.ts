@@ -330,7 +330,9 @@ describe("V1 stance and state rules", () => {
           coverTerrains,
         ),
         unit1: { x: 0, y: 0, z: casterHeight },
-        unit2: { x: 0, y: 1, z: 0 },
+        // A real target at the aimed cell, so this exercises line of sight
+        // rather than the empty-tile rejection.
+        unit2: { x: 2, y: 0, z: 0 },
         stance1: STANCE_ID_IRON,
         stance2: STANCE_ID_IRON,
       });

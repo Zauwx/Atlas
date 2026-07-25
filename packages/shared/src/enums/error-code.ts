@@ -25,6 +25,7 @@ export const IntentErrorCodeSchema = z.enum([
   "OutOfRange",
   "NoLineOfSight",
   "InvalidTarget",
+  "NoTargetInArea",
   "StanceAlreadyLocked",
 ]);
 
