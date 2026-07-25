@@ -91,6 +91,31 @@ interface UnitVisual {
 
 const MOVE_MS_PER_CELL = 140;
 
+/** Spell effects draw above tiles, units, and highlights. */
+const FX_DEPTH = 1200;
+
+/** Effect tint by damage element — a spell reads by its color. */
+const ELEMENT_COLORS: Readonly<Record<string, number>> = {
+  Physical: 0xf2f2f2,
+  Fire: 0xff7b3d,
+  Water: 0x4ea8ff,
+  Ice: 0x9fe6ff,
+  Lightning: 0xffe14e,
+  Earth: 0xc79a5b,
+  Air: 0xcfeaff,
+  Neutral: 0xd7d7d7,
+};
+
+/** Effect tint by state, for the flash when one is applied. */
+const STATE_COLORS: Readonly<Record<string, number>> = {
+  wet: 0x4ea8ff,
+  burning: 0xff7b3d,
+  frozen: 0x9fe6ff,
+  rooted: 0xb98a4a,
+  electrified: 0xffe14e,
+  shielded: 0xbcd4ff,
+};
+
 /** Friendlier text for the rejection codes a player runs into most. */
 const REJECTION_MESSAGES: Readonly<Partial<Record<string, string>>> = {
   NoTargetInArea: "No target there — no AP spent.",
@@ -315,6 +340,8 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
         return;
       }
       case "Push": {
+        const origin = this.surfaceXY(event.from.x, event.from.y, event.from.z);
+        this.burst(origin.x, origin.y, 0xd7d7d7, 1.7);
         this.tweenAlongPath(event.unitId, [{ ...event.to }], done);
         return;
       }
@@ -335,6 +362,8 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
         return;
       }
       case "Collision": {
+        const at = this.surfaceXY(event.at.x, event.at.y, event.at.z);
+        this.burst(at.x, at.y, 0xffb066, 2);
         this.floatText(event.at.x, event.at.y, event.at.z, `-${String(event.damage)}`, "#ff8a5e");
         this.syncUnitVisual(event.unitId);
         this.time.delayedCall(250, done);
@@ -342,22 +371,45 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
       }
       case "Damage": {
         const unit = this.view.unitById(event.targetUnitId);
-        if (unit !== null) {
-          this.floatText(
-            unit.position.x,
-            unit.position.y,
-            unit.position.z,
-            `-${String(event.amount)}`,
-            "#ff6a6a",
-          );
+        const color = ELEMENT_COLORS[event.element] ?? 0xffffff;
+        const target =
+          unit === null ? null : this.surfaceXY(unit.position.x, unit.position.y, unit.position.z);
+        const landHit = (): void => {
+          if (target !== null) {
+            this.burst(target.x, target.y, color);
+          }
+          if (unit !== null) {
+            this.floatText(
+              unit.position.x,
+              unit.position.y,
+              unit.position.z,
+              `-${String(event.amount)}`,
+              "#ff6a6a",
+            );
+          }
+          this.syncUnitVisual(event.targetUnitId);
+        };
+        // A spell hit carries its caster; fly a bolt from caster to target.
+        // Sourceless damage (a Burning tick) just flashes on impact.
+        const source = event.sourceUnitId === null ? null : this.view.unitById(event.sourceUnitId);
+        if (source !== null && target !== null && source.id !== event.targetUnitId) {
+          const from = this.surfaceXY(source.position.x, source.position.y, source.position.z);
+          this.burst(from.x, from.y, color, 1.8);
+          this.spawnProjectile(from, target, color, () => {
+            landHit();
+            this.time.delayedCall(150, done);
+          });
+          return;
         }
-        this.syncUnitVisual(event.targetUnitId);
-        this.time.delayedCall(250, done);
+        landHit();
+        this.time.delayedCall(220, done);
         return;
       }
       case "Heal": {
         const unit = this.view.unitById(event.targetUnitId);
         if (unit !== null) {
+          const at = this.surfaceXY(unit.position.x, unit.position.y, unit.position.z);
+          this.burst(at.x, at.y, 0x7dff9a, 2.2);
           this.floatText(
             unit.position.x,
             unit.position.y,
@@ -389,6 +441,8 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
         return;
       }
       case "TerrainChanged": {
+        const at = this.surfaceXY(event.at.x, event.at.y, event.at.z);
+        this.burst(at.x, at.y, colorForTerrain(event.toTerrainId), 2.6);
         this.drawBoard();
         this.time.delayedCall(150, done);
         return;
@@ -415,7 +469,23 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
         done();
         return;
       }
-      case "ApplyState":
+      case "ApplyState": {
+        const color = STATE_COLORS[event.stateId] ?? 0xffffff;
+        let at: { x: number; y: number } | null = null;
+        if (event.target.kind === "Unit") {
+          const unit = this.view.unitById(event.target.unitId);
+          if (unit !== null) {
+            at = this.surfaceXY(unit.position.x, unit.position.y, unit.position.z);
+          }
+        } else {
+          at = this.surfaceXY(event.target.coord.x, event.target.coord.y, event.target.coord.z);
+        }
+        if (at !== null) {
+          this.burst(at.x, at.y, color, 2.2);
+        }
+        this.time.delayedCall(140, done);
+        return;
+      }
       case "RemoveState":
       case "TurnStarted":
       case "TurnEnded": {
@@ -917,6 +987,56 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
       ],
       true,
     );
+  }
+
+  // --- Spell effects (procedural, no assets) ---
+
+  /** Screen position of a cell's surface, in board-layer space. */
+  private surfaceXY(x: number, y: number, z: number): { x: number; y: number } {
+    return { x: isoX(x, y), y: isoY(x, y, z) - 8 };
+  }
+
+  /** A bolt that flies from caster to target, then calls onHit at the impact. */
+  private spawnProjectile(
+    from: { x: number; y: number },
+    to: { x: number; y: number },
+    color: number,
+    onHit: () => void,
+  ): void {
+    const bolt = this.add.circle(from.x, from.y, 5, color);
+    bolt.setStrokeStyle(2, 0xffffff, 0.7);
+    bolt.setDepth(FX_DEPTH);
+    this.boardLayer.add(bolt);
+    const distance = Phaser.Math.Distance.Between(from.x, from.y, to.x, to.y);
+    this.tweens.add({
+      targets: bolt,
+      x: to.x,
+      y: to.y,
+      duration: Phaser.Math.Clamp(distance * 1.6, 120, 320),
+      ease: "Quad.easeIn",
+      onComplete: () => {
+        bolt.destroy();
+        onHit();
+      },
+    });
+  }
+
+  /** An expanding ring that fades — used for impacts, casts, and splashes. */
+  private burst(x: number, y: number, color: number, maxScale = 3): void {
+    const ring = this.add.circle(x, y, 7, color, 0.5);
+    ring.setStrokeStyle(2, color, 0.9);
+    ring.setDepth(FX_DEPTH);
+    this.boardLayer.add(ring);
+    this.tweens.add({
+      targets: ring,
+      scale: maxScale,
+      alpha: 0,
+      duration: 300,
+      ease: "Quad.easeOut",
+      onComplete: () => {
+        ring.destroy();
+      },
+    });
   }
 
   private floatText(x: number, y: number, z: number, text: string, color: string): void {
