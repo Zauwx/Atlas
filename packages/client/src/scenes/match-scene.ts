@@ -924,10 +924,15 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     const color = colorForPlayer(ownerIndex);
 
     const token = this.add.graphics();
-    // Ground shadow, then a beveled token: dark base, colored body, a rim
-    // outline, and a top-left highlight for a lit, rounded look.
+    // Team ring on the ground — ally blue, enemy red (Dofus-style), so sides
+    // read at a glance — then a soft shadow, a bright rim, and the beveled
+    // token: dark base, colored body, rim outline, top-left highlight.
+    token.fillStyle(color, 0.2);
+    token.fillEllipse(0, 4, 36, 16);
     token.fillStyle(0x000000, 0.28);
-    token.fillEllipse(0, 3, 24, 11);
+    token.fillEllipse(0, 4, 22, 10);
+    token.lineStyle(2, shade(color, 1.3), 0.95);
+    token.strokeEllipse(0, 4, 32, 14);
     token.fillStyle(shade(color, 0.55));
     token.fillCircle(0, -10, 13);
     token.fillStyle(color);
