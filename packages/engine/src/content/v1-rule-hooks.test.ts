@@ -11,7 +11,6 @@ import {
   STANCE_ID_IRON,
   STANCE_ID_STORM,
   STATE_ID_FROZEN,
-  createV1Map,
   V1_GAME_CONFIG,
 } from "@atlas/shared";
 import { MatchSimulation } from "../simulation.js";
@@ -71,17 +70,22 @@ function createV1Sim(options: {
   return sim;
 }
 
-describe("the V1 map's high ground is actually reachable", () => {
+describe("climbing a ramp onto high ground (rulebook: Movement, climb ≤ +1)", () => {
   /**
-   * The reported bug: a z2 ridge beside z0 ground cannot be climbed,
-   * because one step climbs at most +1. Ramps make the route 0 → 1 → 2.
+   * A z2 shelf beside z0 ground cannot be climbed in one step, because a
+   * step climbs at most +1; a z1 ramp bridges the route 0 → 1 → 2. The
+   * procedural map generator guarantees every rise is ramped, so this
+   * checks the mechanic that guarantee relies on, on an explicit ramp.
    */
+  const rampHeights = Array.from({ length: 7 }, (_, y) =>
+    Array.from({ length: 12 }, (_, x) => (x === 5 && y === 2 ? 1 : x === 5 && y === 3 ? 2 : 0)),
+  );
   const standNextToRamp = () =>
     new MatchSimulation(
       MATCH_ID,
       V1_GAME_CONFIG,
       {
-        map: createV1Map(),
+        map: buildMap(rampHeights),
         players: [
           {
             id: PLAYER_1,

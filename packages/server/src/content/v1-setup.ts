@@ -2,15 +2,33 @@ import type { ClassId, GameConfig, MatchSetup, PlayerId } from "@atlas/shared";
 import {
   CLASS_ID_TIDECALLER,
   CLASS_ID_VANGUARD,
-  createV1Map,
+  generateMap,
   UnitIdSchema,
   V1_SPAWN_PLAYER_1,
   V1_SPAWN_PLAYER_2,
 } from "@atlas/shared";
 
 /**
- * V1 match setup on Ridge and Pools: first joiner spawns west, second
- * east.
+ * Turns a match's identity into a map seed with FNV-1a. Deterministic and
+ * self-contained: the same pair of session ids always yields the same
+ * board (ARCHITECTURE.md "Determinism"), while distinct matches — which
+ * always have distinct session ids — get distinct battlefields. No
+ * Math.random anywhere in setup.
+ */
+function seedFromMatch(playerIds: readonly [PlayerId, PlayerId]): number {
+  let hash = 0x811c9dc5;
+  for (const id of playerIds) {
+    for (let index = 0; index < id.length; index += 1) {
+      hash ^= id.charCodeAt(index);
+      hash = Math.imul(hash, 0x01000193);
+    }
+  }
+  return hash >>> 0;
+}
+
+/**
+ * V1 match setup: first joiner spawns west, second east, on a board rolled
+ * fresh for this match (see map-generator.ts).
  *
  * Each player may choose their class when joining; an absent or unknown
  * choice falls back to the seat default (Vanguard west, Tidecaller east).
@@ -31,7 +49,7 @@ export function buildV1MatchSetup(
   };
 
   return {
-    map: createV1Map(),
+    map: generateMap(seedFromMatch(playerIds)),
     players: [
       {
         id: playerIds[0],
