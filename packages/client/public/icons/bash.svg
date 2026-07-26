@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Steel Metallic Gradients -->
+    <linearGradient id="steel-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    
+    <linearGradient id="steel-mid" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8"/>
+      <stop offset="50%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    
+    <linearGradient id="steel-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="50%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <!-- Fantasy Gold Trim -->
+    <linearGradient id="gold-trim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+
+    <!-- Impact Energy Gradients -->
+    <radialGradient id="impact-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#fde047"/>
+      <stop offset="60%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="spark-fire" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#fde047"/>
+      <stop offset="80%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- IMPACT SPARK & SHOCKWAVE (BACKGROUND LAYER) -->
+  <!-- Outer Glow -->
+  <circle cx="18" cy="46" r="16" fill="url(#impact-glow)"/>
+
+  <!-- Shockwave Ring -->
+  <path d="M 5,42 C 3,52 12,59 22,57 C 30,55 35,47 31,41" 
+        fill="none" stroke="#fde047" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 2"/>
+  
+  <!-- Saturated Impact Starburst -->
+  <path d="M 18,46 L 2,48 L 11,40 L 0,33 L 13,32 L 8,18 L 20,27 L 24,12 L 29,26 L 41,20 L 34,31 L 46,35 L 33,40 L 40,52 L 27,46 L 24,60 L 19,48 L 10,57 Z" 
+        fill="url(#spark-fire)"/>
+
+  <!-- Secondary Bright Sparks -->
+  <path d="M 12,24 L 15,20 L 16,25 L 20,22 L 17,27 Z" fill="#ffffff"/>
+  <path d="M 36,44 L 42,46 L 37,48 L 40,53 L 35,50 Z" fill="#fde047"/>
+  <path d="M 6,52 L 10,54 L 6,57 L 11,57 Z" fill="#ea580c"/>
+
+  <!-- GAUNTLET (FOREGROUND LAYER) -->
+  <!-- Dark Silhouette/Shadow Base for Contrast -->
+  <path d="M 48,5 L 61,15 L 56,31 L 43,39 L 33,48 L 17,50 L 12,41 L 22,29 L 34,17 Z" fill="#090d16"/>
+
+  <!-- 1. Vambrace (Forearm Guard) -->
+  <!-- Vambrace Top -->
+  <path d="M 41,13 L 50,6 L 58,12 L 49,19 Z" fill="url(#steel-light)"/>
+  <!-- Vambrace Side -->
+  <path d="M 49,19 L 58,12 L 54,26 L 44,31 Z" fill="url(#steel-dark)"/>
+  <!-- Vambrace Cuff Trim (Gold) -->
+  <path d="M 50,6 L 53,3 L 61,10 L 58,12 Z" fill="url(#gold-trim)"/>
+  <path d="M 58,12 L 61,10 L 57,24 L 54,26 Z" fill="#b45309"/>
+
+  <!-- 2. Wrist Segment -->
+  <!-- Wrist Top -->
+  <path d="M 35,18 L 43,11 L 48,16 L 40,23 Z" fill="url(#steel-light)"/>
+  <!-- Wrist Side -->
+  <path d="M 40,23 L 48,16 L 44,27 L 36,33 Z" fill="url(#steel-mid)"/>
+
+  <!-- 3. Metacarpal Main Hand Plate -->
+  <!-- Hand Top -->
+  <path d="M 28,23 L 36,16 L 42,21 L 34,28 Z" fill="url(#steel-light)"/>
+  <!-- Hand Side -->
+  <path d="M 34,28 L 42,21 L 38,32 L 30,38 Z" fill="url(#steel-dark)"/>
+  <!-- Hand Gold Inlay Accent -->
+  <path d="M 33,23 L 37,19 L 39,21 L 35,25 Z" fill="url(#gold-trim)"/>
+
+  <!-- 4. Reinforced Knuckle Plate (The Striking Face) -->
+  <!-- Knuckle Top Face -->
+  <path d="M 21,28 L 29,21 L 35,26 L 27,33 Z" fill="url(#steel-light)"/>
+  <!-- Knuckle Front/Impact Face -->
+  <path d="M 16,36 L 27,28 L 30,35 L 19,43 Z" fill="url(#steel-mid)"/>
+  <!-- Knuckle Bottom/Side Face -->
+  <path d="M 27,33 L 35,26 L 30,35 Z" fill="url(#steel-dark)"/>
+
+  <!-- Heavy Knuckle Spikes / Studs -->
+  <!-- Spike 1 (Top) -->
+  <path d="M 27,24 L 30,21 L 30,26 Z" fill="#f8fafc"/>
+  <path d="M 30,21 L 32,24 L 30,26 Z" fill="#64748b"/>
+  <!-- Spike 2 (Mid) -->
+  <path d="M 22,29 L 25,26 L 25,31 Z" fill="#f8fafc"/>
+  <path d="M 25,26 L 27,29 L 25,31 Z" fill="#64748b"/>
+  <!-- Spike 3 (Low) -->
+  <path d="M 17,34 L 20,31 L 20,36 Z" fill="#f8fafc"/>
+  <path d="M 20,31 L 22,34 L 20,36 Z" fill="#64748b"/>
+
+  <!-- 5. Clenched Thumb & Finger Guard -->
+  <!-- Thumb Plate -->
+  <path d="M 21,39 L 28,33 L 32,38 L 25,44 Z" fill="url(#steel-light)"/>
+  <path d="M 25,44 L 32,38 L 30,42 L 23,47 Z" fill="url(#steel-dark)"/>
+  <path d="M 28,33 L 32,38 L 30,42 L 25,44 Z" fill="none" stroke="#fef08a" stroke-width="0.5"/>
+
+  <!-- Index/Middle Finger Joints (Folded) -->
+  <path d="M 15,42 L 20,38 L 23,43 L 18,47 Z" fill="url(#steel-mid)"/>
+  <path d="M 18,47 L 23,43 L 21,48 L 16,49 Z" fill="url(#steel-dark)"/>
+
+  <!-- Panel Inner Detail Lines / Sharp Edges -->
+  <path d="M 41,13 L 49,19 L 44,31" fill="none" stroke="#f8fafc" stroke-width="0.5" opacity="0.6"/>
+  <path d="M 35,18 L 40,23 L 36,33" fill="none" stroke="#f8fafc" stroke-width="0.5" opacity="0.6"/>
+  <path d="M 28,23 L 34,28 L 30,38" fill="none" stroke="#f8fafc" stroke-width="0.5" opacity="0.8"/>
+  <path d="M 21,28 L 27,33 L 19,43" fill="none" stroke="#ffffff" stroke-width="0.75"/>
+
+  <!-- HOT IMPACT CORE (FOREGROUND FLASH) -->
+  <!-- Bright Center Flash at Impact Point -->
+  <ellipse cx="16" cy="44" rx="4" ry="3" fill="#ffffff" transform="rotate(-20 16 44)"/>
+  <path d="M 16,38 L 18,44 L 24,44 L 19,46 L 20,52 L 15,47 L 10,49 L 14,44 Z" fill="#ffffff"/>
+</svg>

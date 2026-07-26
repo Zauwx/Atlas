@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Deep Water Shadow Gradient -->
+    <linearGradient id="deepWater" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#003554"/>
+      <stop offset="100%" stop-color="#006494"/>
+    </linearGradient>
+
+    <!-- Main Water Body Gradient -->
+    <linearGradient id="mainWater" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#0077b6"/>
+      <stop offset="50%" stop-color="#00b4d8"/>
+      <stop offset="100%" stop-color="#90e0ef"/>
+    </linearGradient>
+
+    <!-- Vibrant Highlight Gradient -->
+    <linearGradient id="foamHighlight" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#48cae4"/>
+      <stop offset="50%" stop-color="#caf0f8"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+
+    <!-- Droplet Gradient -->
+    <linearGradient id="dropGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#00b4d8"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Isometric Base Ring & Ripples -->
+  <ellipse cx="32" cy="52" rx="25" ry="9" fill="#002845" opacity="0.3"/>
+  <ellipse cx="32" cy="52" rx="23" ry="8" fill="none" stroke="#0077b6" stroke-width="1.5" opacity="0.7"/>
+  <ellipse cx="32" cy="52" rx="16" ry="5.5" fill="none" stroke="#48cae4" stroke-width="2"/>
+  <ellipse cx="32" cy="52" rx="9" ry="3" fill="none" stroke="#caf0f8" stroke-width="1.5"/>
+
+  <!-- Interior Back Wall (Creates depth inside the splash crown) -->
+  <path d="M 14 44 C 15 32, 22 22, 32 22 C 42 22, 49 32, 50 44 C 41 49, 23 49, 14 44 Z" fill="url(#deepWater)"/>
+
+  <!-- Back Secondary Spouts -->
+  <path d="M 20 28 C 17 20, 13 14, 10 13 C 14 18, 18 24, 22 32 Z" fill="#0096c7"/>
+  <path d="M 44 28 C 47 20, 51 14, 54 13 C 50 18, 46 24, 42 32 Z" fill="#0096c7"/>
+
+  <!-- Main Water Crown & Spouts (Foreground) -->
+  <path d="M 9 43 
+           C 6 36, 6 28, 9 22
+           C 12 26, 14 31, 17 34
+           C 18 25, 22 14, 27 8
+           C 30 15, 30 22, 30 30
+           C 32 20, 35 10, 38 3
+           C 41 11, 40 22, 39 31
+           C 42 24, 47 16, 53 14
+           C 51 22, 47 28, 46 35
+           C 49 31, 54 26, 58 26
+           C 56 33, 51 40, 45 45
+           C 37 50, 21 50, 9 43 Z" 
+        fill="url(#mainWater)"/>
+
+  <!-- Highlight Sculpting & Foam Details -->
+  <!-- Left Wing Highlight -->
+  <path d="M 9 22 C 12 26, 14 31, 17 34 C 15 31, 12 26, 10 23 Z" fill="url(#foamHighlight)"/>
+  
+  <!-- Mid-Left Spout Highlight -->
+  <path d="M 27 8 C 29 14, 28 22, 26 29 C 24 23, 24 15, 27 8 Z" fill="url(#foamHighlight)"/>
+  
+  <!-- Main High Center Spout Highlight -->
+  <path d="M 38 3 C 40 10, 39 20, 36 29 C 34 22, 36 12, 38 3 Z" fill="url(#foamHighlight)"/>
+  
+  <!-- Right Crest Highlight -->
+  <path d="M 53 14 C 50 20, 46 27, 45 33 C 47 27, 50 21, 53 14 Z" fill="url(#foamHighlight)"/>
+
+  <!-- Inner Rim Foam Lip (Isometric Front Edge) -->
+  <path d="M 12 44 C 20 49, 44 49, 52 44 C 44 47, 20 47, 12 44 Z" fill="#ffffff" opacity="0.9"/>
+  <path d="M 17 46 C 24 49, 40 49, 47 46 C 40 48, 24 48, 17 46 Z" fill="#ffffff"/>
+
+  <!-- Water Droplets (Dynamic Arc) -->
+  <!-- Center Top Droplet -->
+  <path d="M 38 0.5 C 39.5 0.5, 40.5 2, 38 4.5 C 35.5 2, 36.5 0.5, 38 0.5 Z" fill="url(#dropGrad)"/>
+  
+  <!-- Left High Droplet -->
+  <path d="M 24 3 C 25.5 3, 26.5 4.5, 24 7 C 21.5 4.5, 22.5 3, 24 3 Z" fill="url(#dropGrad)"/>
+  
+  <!-- Far Left Droplet -->
+  <circle cx="4.5" cy="18.5" r="2" fill="url(#dropGrad)"/>
+  <circle cx="4" cy="18" r="0.6" fill="#ffffff"/>
+
+  <!-- Mid Left Small Drop -->
+  <circle cx="2" cy="29" r="1.5" fill="url(#dropGrad)"/>
+
+  <!-- Far Right Droplet -->
+  <path d="M 58 18 C 59.5 18, 60.5 19.5, 58 22 C 55.5 19.5, 56.5 18, 58 18 Z" fill="url(#dropGrad)"/>
+  
+  <!-- Right High Droplet -->
+  <circle cx="58.5" cy="10.5" r="1.8" fill="url(#dropGrad)"/>
+  <circle cx="58" cy="10" r="0.5" fill="#ffffff"/>
+
+  <!-- Floating Impact Sparkles / Tiny Beads -->
+  <circle cx="14" cy="12" r="1" fill="#caf0f8"/>
+  <circle cx="48" cy="8" r="1.2" fill="#caf0f8"/>
+  <circle cx="32" cy="14" r="1" fill="#ffffff"/>
+</svg>

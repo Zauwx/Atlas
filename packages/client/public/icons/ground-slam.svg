@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Ground Gradients -->
+    <linearGradient id="ground-top" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7A4E2D"/>
+      <stop offset="50%" stop-color="#5C381E"/>
+      <stop offset="100%" stop-color="#3D2210"/>
+    </linearGradient>
+    <linearGradient id="ground-side" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3A200D"/>
+      <stop offset="100%" stop-color="#1A0D05"/>
+    </linearGradient>
+
+    <!-- Lava / Energy Crack Gradient -->
+    <linearGradient id="crack-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="25%" stop-color="#FFD000"/>
+      <stop offset="65%" stop-color="#FF4500"/>
+      <stop offset="100%" stop-color="#800000"/>
+    </linearGradient>
+
+    <!-- Gauntlet Metallic Bronze/Gold Gradients -->
+    <linearGradient id="metal-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3A1"/>
+      <stop offset="40%" stop-color="#E6A13B"/>
+      <stop offset="100%" stop-color="#995816"/>
+    </linearGradient>
+    <linearGradient id="metal-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#804815"/>
+      <stop offset="100%" stop-color="#3D1F05"/>
+    </linearGradient>
+    <linearGradient id="glove-leather" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A2F1D"/>
+      <stop offset="100%" stop-color="#211208"/>
+    </linearGradient>
+
+    <!-- Impact Flash -->
+    <radialGradient id="impact-burst" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="30%" stop-color="#FFEA66" stop-opacity="0.9"/>
+      <stop offset="70%" stop-color="#FF5500" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#FF0000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Ground Base Drop Shadow -->
+  <ellipse cx="32" cy="47" rx="26" ry="13" fill="#0D0603" opacity="0.6"/>
+
+  <!-- Isometric Ground Slab Side/Depth -->
+  <path d="M 7,42 L 32,55 L 57,42 L 57,46 L 32,59 L 7,46 Z" fill="url(#ground-side)"/>
+  
+  <!-- Isometric Ground Slab Top Surface -->
+  <path d="M 7,42 L 32,29 L 57,42 L 32,55 Z" fill="url(#ground-top)"/>
+
+  <!-- Impact Radial Glow Underlay -->
+  <ellipse cx="32" cy="42" rx="16" ry="8" fill="url(#impact-burst)"/>
+
+  <!-- Glowing Ground Cracks -->
+  <!-- Center Impact Core -->
+  <path d="M 32,42 L 22,46 L 12,43 L 20,41 L 32,42 Z" fill="url(#crack-glow)"/>
+  <path d="M 32,42 L 35,53 L 29,56 L 31,48 L 32,42 Z" fill="url(#crack-glow)"/>
+  <path d="M 32,42 L 44,47 L 53,43 L 42,43 L 32,42 Z" fill="url(#crack-glow)"/>
+  <path d="M 32,42 L 28,34 L 18,32 L 26,36 L 32,42 Z" fill="url(#crack-glow)"/>
+  <path d="M 32,42 L 39,34 L 48,32 L 40,37 L 32,42 Z" fill="url(#crack-glow)"/>
+
+  <!-- Hot Crack Lines (Sharp Overlay) -->
+  <path d="M 32,42 L 10,43 M 32,42 L 30,57 M 32,42 L 54,43 M 32,42 L 16,31 M 32,42 L 50,31" stroke="#FFF7D1" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Shockwave Ring / Rays -->
+  <ellipse cx="32" cy="42" rx="21" ry="10" fill="none" stroke="url(#crack-glow)" stroke-width="1.5" opacity="0.8" stroke-dasharray="6 3 12 4"/>
+  
+  <polygon points="32,42 22,38 28,41" fill="#FFE600"/>
+  <polygon points="32,42 42,38 36,41" fill="#FFE600"/>
+  <polygon points="32,42 20,46 27,43" fill="#FF5500"/>
+  <polygon points="32,42 44,46 37,43" fill="#FF5500"/>
+  <polygon points="32,42 32,52 34,45" fill="#FF7700"/>
+
+  <!-- Debris / Rock Shards (Flying Outward) -->
+  <!-- Top Left Shard -->
+  <g>
+    <polygon points="12,22 17,18 21,22 16,25" fill="#7A4E2D"/>
+    <polygon points="12,22 16,25 15,28 11,24" fill="#3A200D"/>
+    <polygon points="21,22 16,25 15,28 20,24" fill="#211208"/>
+  </g>
+  <!-- Far Left Small Shard -->
+  <g>
+    <polygon points="5,31 9,29 12,32 8,33" fill="#5C381E"/>
+    <polygon points="5,31 8,33 7,35 4,33" fill="#1A0D05"/>
+  </g>
+  <!-- Top Right Shard -->
+  <g>
+    <polygon points="46,18 52,15 56,19 50,21" fill="#7A4E2D"/>
+    <polygon points="46,18 50,21 49,24 45,20" fill="#3A200D"/>
+  </g>
+  <!-- Bottom Right Shard -->
+  <g>
+    <polygon points="49,46 54,44 57,48 52,50" fill="#5C381E"/>
+    <polygon points="49,46 52,50 50,52 47,48" fill="#1A0D05"/>
+  </g>
+  <!-- Bottom Center Shard -->
+  <g>
+    <polygon points="22,53 26,51 28,54 24,56" fill="#7A4E2D"/>
+    <polygon points="22,53 24,56 23,58 21,55" fill="#211208"/>
+  </g>
+
+  <!-- ISOMETRIC FIST / GAUNTLET (Striking Downwards from Top-Right) -->
+  <g id="gauntlet">
+    <!-- Forearm / Bracer Base (Leather/Underlayer) -->
+    <path d="M 44,7 L 57,14 L 47,26 L 36,18 Z" fill="url(#glove-leather)"/>
+    <path d="M 36,18 L 47,26 L 43,31 L 33,22 Z" fill="#150A04"/>
+
+    <!-- Armored Bracer Plate (Gold/Bronze) -->
+    <path d="M 46,6 L 59,13 L 53,20 L 40,12 Z" fill="url(#metal-light)"/>
+    <path d="M 40,12 L 53,20 L 48,25 L 36,16 Z" fill="url(#metal-dark)"/>
+
+    <!-- Main Hand Backplate -->
+    <path d="M 36,15 L 48,22 L 40,31 L 28,23 Z" fill="url(#metal-light)"/>
+    <path d="M 28,23 L 40,31 L 36,35 L 25,27 Z" fill="url(#metal-dark)"/>
+
+    <!-- Heavy Knuckle Guard (Impact Edge) -->
+    <path d="M 27,22 L 38,15 L 42,20 L 31,28 Z" fill="#FFF3A1"/>
+    <path d="M 31,28 L 42,20 L 37,33 L 26,30 Z" fill="url(#metal-light)"/>
+    <path d="M 26,30 L 37,33 L 32,39 L 22,34 Z" fill="url(#metal-dark)"/>
+
+    <!-- Clenched Fingers (Knuckles Smashing Down) -->
+    <!-- Finger 1 (Index) -->
+    <path d="M 22,34 L 27,30 L 30,34 L 25,38 Z" fill="url(#metal-light)"/>
+    <path d="M 25,38 L 30,34 L 28,39 L 23,41 Z" fill="url(#metal-dark)"/>
+    
+    <!-- Finger 2 (Middle - Main Point of Impact) -->
+    <path d="M 26,37 L 31,33 L 34,37 L 29,42 Z" fill="url(#metal-light)"/>
+    <path d="M 29,42 L 34,37 L 32,42 L 27,44 Z" fill="url(#metal-dark)"/>
+
+    <!-- Finger 3 (Ring) -->
+    <path d="M 30,40 L 35,36 L 38,40 L 33,44 Z" fill="url(#metal-light)"/>
+    <path d="M 33,44 L 38,40 L 36,44 L 31,46 Z" fill="url(#metal-dark)"/>
+
+    <!-- Thumb Wrapped Over -->
+    <path d="M 30,24 L 38,28 L 35,34 L 27,29 Z" fill="url(#metal-light)"/>
+    <path d="M 27,29 L 35,34 L 32,38 L 25,32 Z" fill="url(#metal-dark)"/>
+
+    <!-- High Energy Rim Highlight on Bottom Knuckles (Impact Reflection) -->
+    <path d="M 22,35 L 27,42 L 32,45 L 36,44" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M 25,38 L 29,43 L 33,45" fill="none" stroke="#FFEA66" stroke-width="2" opacity="0.8"/>
+  </g>
+
+  <!-- Impact Sparks Floating Up -->
+  <circle cx="20" cy="28" r="1" fill="#FFFFFF"/>
+  <circle cx="15" cy="35" r="1.5" fill="#FFD000"/>
+  <circle cx="27" cy="20" r="1" fill="#FF5500"/>
+  <circle cx="42" cy="36" r="1.5" fill="#FFD000"/>
+  <circle cx="38" cy="48" r="1" fill="#FFFFFF"/>
+</svg>

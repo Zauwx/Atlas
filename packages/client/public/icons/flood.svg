@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Deep Base Gradient -->
+    <linearGradient id="w-dark" x1="10%" y1="90%" x2="90%" y2="10%">
+      <stop offset="0%" stop-color="#031024"/>
+      <stop offset="50%" stop-color="#022B5C"/>
+      <stop offset="100%" stop-color="#0052A3"/>
+    </linearGradient>
+
+    <!-- Mid Wave Gradient -->
+    <linearGradient id="w-mid" x1="15%" y1="85%" x2="85%" y2="15%">
+      <stop offset="0%" stop-color="#004899"/>
+      <stop offset="60%" stop-color="#0077C8"/>
+      <stop offset="100%" stop-color="#00A8E8"/>
+    </linearGradient>
+
+    <!-- Bright Inner Water Gradient -->
+    <linearGradient id="w-bright" x1="20%" y1="80%" x2="80%" y2="20%">
+      <stop offset="0%" stop-color="#0096C7"/>
+      <stop offset="50%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#80EED3"/>
+    </linearGradient>
+
+    <!-- Foam / Crest Gradient -->
+    <linearGradient id="w-foam" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="60%" stop-color="#D4F1F9"/>
+      <stop offset="100%" stop-color="#76E4F7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Isometric Base Water Ripple / Surge Shadow -->
+  <path d="M 6,48 C 14,56 34,60 52,54 C 59,52 61,45 53,43 C 41,40 22,42 12,45 C 6,46 4,47 6,48 Z" fill="#021024" opacity="0.6"/>
+  <path d="M 8,47 C 16,54 36,57 50,52 C 56,50 54,45 46,43 C 34,41 18,43 10,45 C 7,46 7,47 8,47 Z" fill="url(#w-dark)"/>
+
+  <!-- Main Wave Back / Outer Silhouette -->
+  <path d="M 10,46 C 20,55 44,53 54,40 C 62,28 56,12 42,6 C 28,0 14,6 8,18 C 5,24 8,31 16,29 C 23,27 26,20 32,15 C 40,8 49,14 47,26 C 44,37 28,43 10,46 Z" fill="url(#w-dark)"/>
+
+  <!-- Main Body Flow (Mid-tone) -->
+  <path d="M 8,44 C 18,51 40,49 48,38 C 55,28 51,15 40,10 C 28,5 18,10 14,18 C 11,24 15,29 21,27 C 27,25 28,19 34,15 C 41,11 46,17 43,26 C 39,35 25,40 8,44 Z" fill="url(#w-mid)"/>
+
+  <!-- Secondary Isometric Flow Streak (Lower Surge) -->
+  <path d="M 12,46 C 24,52 42,48 50,38 C 42,43 26,45 14,41 C 10,40 8,43 12,46 Z" fill="url(#w-bright)" opacity="0.7"/>
+
+  <!-- Inner High-Velocity Water Current (Bright Saturated Aqua) -->
+  <path d="M 14,41 C 24,46 38,42 44,33 C 50,24 46,15 36,12 C 26,9 18,13 16,19 C 18,14 26,11 34,14 C 42,17 43,24 39,30 C 33,37 22,39 14,41 Z" fill="url(#w-bright)"/>
+
+  <!-- Curling Wave Lip & Tube Interior Shadow -->
+  <path d="M 36,12 C 26,9 16,13 13,22 C 10,28 14,33 20,31 C 25,29 26,23 31,19 C 36,15 41,18 39,24 C 37,28 31,32 23,33 C 30,32 36,28 37,22 C 39,17 35,13 29,14 C 23,15 19,19 17,23 C 14,23 12,20 13,17 C 16,11 25,8 36,12 Z" fill="#011F4B"/>
+
+  <!-- Front Curling Crest Lip (Vivid Bright Water Hook) -->
+  <path d="M 38,10 C 28,7 18,11 14,20 C 12,25 15,28 19,27 C 23,26 25,21 29,17 C 34,13 38,16 37,20 C 35,24 30,27 24,28 C 30,27 34,24 35,20 C 36,16 33,14 28,14 C 23,15 19,18 17,22 C 15,22 13,19 14,17 C 17,12 26,8 38,10 Z" fill="url(#w-bright)"/>
+
+  <!-- Top Foam Ridge & Splash Claws (Pure White / Cyan Foam) -->
+  <path d="M 42,6 C 30,1 16,6 9,17 C 6,22 8,26 12,24 C 10,21 10,17 13,13 C 18,6 30,3 41,7 C 50,10 56,19 52,29 C 49,36 41,41 29,44 C 40,41 49,35 52,28 C 56,18 49,9 42,6 Z" fill="url(#w-foam)"/>
+
+  <!-- Dynamic Foam Swirl at Wave Tip -->
+  <path d="M 14,18 C 10,22 11,26 16,25 C 20,24 23,19 28,16 C 32,13 36,15 35,18 C 34,20 31,22 26,24 C 30,22 33,20 33,18 C 34,16 31,14 27,15 C 23,17 20,21 16,22 C 13,23 12,20 14,18 Z" fill="url(#w-foam)"/>
+
+  <!-- Highlight Accents & Droplets -->
+  <!-- Droplet 1 (Top Left Splash) -->
+  <path d="M 8,11 C 6,8 9,5 11,8 C 10,10 9,11 8,11 Z" fill="url(#w-foam)"/>
+  <!-- Droplet 2 (High Arc Right) -->
+  <path d="M 54,12 C 52,10 54,7 56,9 C 57,11 55,13 54,12 Z" fill="#80EED3"/>
+  <!-- Droplet 3 (Ejected Crest Bead) -->
+  <circle cx="21" cy="7" r="1.5" fill="url(#w-foam)"/>
+  <!-- Droplet 4 (Front Spray) -->
+  <circle cx="6" cy="26" r="1.2" fill="#00E5FF"/>
+  <!-- Droplet 5 (Inner Curl Glint) -->
+  <circle cx="28" cy="22" r="1" fill="#FFFFFF"/>
+
+  <!-- Sharp Isometric Rim Highlight -->
+  <path d="M 44,7 C 52,12 56,22 51,31 C 48,36 41,41 31,44 C 40,42 47,37 50,31 C 54,22 51,13 44,7 Z" fill="#FFFFFF" opacity="0.6"/>
+</svg>

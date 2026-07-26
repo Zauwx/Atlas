@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Main Electric Yellow Gradient -->
+    <linearGradient id="boltGrad" x1="0.8" y1="0.1" x2="0.1" y2="0.9">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="20%" stop-color="#FFF836"/>
+      <stop offset="65%" stop-color="#FFD600"/>
+      <stop offset="100%" stop-color="#FF8C00"/>
+    </linearGradient>
+
+    <!-- Hot Core Gradient -->
+    <linearGradient id="coreGrad" x1="0.7" y1="0.1" x2="0.2" y2="0.9">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#FFFFC8"/>
+      <stop offset="100%" stop-color="#FFEA00"/>
+    </linearGradient>
+
+    <!-- Shadow/Glow Rim Gradient -->
+    <linearGradient id="rimGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#FF5500"/>
+      <stop offset="100%" stop-color="#A20000"/>
+    </linearGradient>
+
+    <!-- Spark Gold Gradient -->
+    <linearGradient id="sparkGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#FFE600"/>
+      <stop offset="100%" stop-color="#FF7700"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Contrast Outline (Backing Shadow for Readability) -->
+  <g stroke="#2A0000" stroke-width="6" stroke-linejoin="miter" stroke-miterlimit="3" fill="#2A0000">
+    <path d="M 46,4 L 26,23 L 35,25 L 46,34 L 40,35 L 52,46 L 44,45 L 36,36 L 28,42 L 35,43 L 10,60 L 18,42 L 11,41 L 22,25 L 14,24 L 32,7 Z"/>
+    <!-- Impact burst outline -->
+    <path d="M 10,60 L 4,56 L 10,54 L 12,48 L 14,54 L 20,56 L 14,58 L 12,64 Z"/>
+  </g>
+
+  <!-- Vibrant Orange/Red Energy Rim -->
+  <g stroke="url(#rimGrad)" stroke-width="3.5" stroke-linejoin="miter" stroke-miterlimit="3" fill="none">
+    <path d="M 46,4 L 26,23 L 35,25 L 46,34 L 40,35 L 52,46 L 44,45 L 36,36 L 28,42 L 35,43 L 10,60 L 18,42 L 11,41 L 22,25 L 14,24 L 32,7 Z"/>
+  </g>
+
+  <!-- Main Lightning Bolt Body -->
+  <path d="M 46,4 L 26,23 L 35,25 L 46,34 L 40,35 L 52,46 L 44,45 L 36,36 L 28,42 L 35,43 L 10,60 L 18,42 L 11,41 L 22,25 L 14,24 L 32,7 Z" fill="url(#boltGrad)"/>
+
+  <!-- Faceted Inner Detail (Shadow/Depth Side for Isometric Feel) -->
+  <path d="M 46,4 L 26,23 L 35,25 L 46,34 L 40,35 L 52,46 L 44,45 L 36,36 L 28,42 L 35,43 L 10,60 L 18,42 L 15,34 L 25,37 L 31,29 L 23,28 L 39,12 Z" fill="#FF9D00" opacity="0.45"/>
+
+  <!-- Faceted Top Highlight (Light Refraction) -->
+  <path d="M 46,4 L 32,7 L 14,24 L 22,25 L 11,41 L 18,42 L 10,60 L 22,46 L 28,42 L 36,36 L 40,35 L 48,42 L 44,45 L 36,36 L 28,42 L 35,43 Z" fill="#FFFFFF" opacity="0.3"/>
+
+  <!-- Pure White Core Energy Line -->
+  <path d="M 43,6 L 27,21 L 32,22.5 L 20,40 L 26,41 L 12,58" fill="none" stroke="url(#coreGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 34,26 L 44,34 L 39,34.5 L 49,44.5" fill="none" stroke="url(#coreGrad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Impact Burst at Ground/Tip Point -->
+  <path d="M 10,60 L 4,56 L 10,54 L 12,48 L 14,54 L 20,56 L 14,58 L 12,64 Z" fill="url(#sparkGrad)" stroke="#FF3D00" stroke-width="0.75"/>
+  <circle cx="10" cy="56" r="2.5" fill="#FFFFFF"/>
+
+  <!-- Floating Isometric Sparks & Energy Sparks -->
+  <!-- Spark 1 (Top Right) -->
+  <path d="M 56,8 L 57.5,12.5 L 62,14 L 57.5,15.5 L 56,20 L 54.5,15.5 L 50,14 L 54.5,12.5 Z" fill="url(#sparkGrad)" stroke="#4A0000" stroke-width="0.8"/>
+  
+  <!-- Spark 2 (Top Left) -->
+  <path d="M 16,7 L 17.2,10.8 L 21,12 L 17.2,13.2 L 16,17 L 14.8,13.2 L 11,12 L 14.8,10.8 Z" fill="url(#sparkGrad)" stroke="#4A0000" stroke-width="0.8"/>
+  
+  <!-- Spark 3 (Mid Right) -->
+  <path d="M 54,32 L 55.2,36.8 L 60,38 L 55.2,39.2 L 54,44 L 52.8,39.2 L 48,38 L 52.8,36.8 Z" fill="url(#sparkGrad)" stroke="#4A0000" stroke-width="0.8"/>
+
+  <!-- Small Diamond Sparks -->
+  <polygon points="22,47 24,49 22,51 20,49" fill="#FFFFFF" stroke="#FF5500" stroke-width="0.6"/>
+  <polygon points="42,18 44,20 42,22 40,20" fill="#FFF836" stroke="#4A0000" stroke-width="0.6"/>
+  <polygon points="32,53 33.5,55 32,57 30.5,55" fill="#FFFFFF" stroke="#FF3D00" stroke-width="0.6"/>
+  <polygon points="5,38 7,40 5,42 3,40" fill="#FFD600" stroke="#2A0000" stroke-width="0.6"/>
+
+  <!-- Arc / Tendril Spark -->
+  <path d="M 45,21 C 48,20 50,22 52,21" fill="none" stroke="#FFF836" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

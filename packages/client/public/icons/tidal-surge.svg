@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="groundShadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#020813" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#020813" stop-opacity="0.7"/>
+    </linearGradient>
+    <linearGradient id="deepOcean" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#001a4d"/>
+      <stop offset="100%" stop-color="#000d26"/>
+    </linearGradient>
+    <linearGradient id="waveBody" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="30%" stop-color="#0077ff"/>
+      <stop offset="75%" stop-color="#0033aa"/>
+      <stop offset="100%" stop-color="#001959"/>
+    </linearGradient>
+    <linearGradient id="innerCurl" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0044cc"/>
+      <stop offset="50%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="foamWhite" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#c2f5ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Isometric Ground Shadow -->
+  <ellipse cx="32" cy="53" rx="26" ry="8.5" fill="url(#groundShadow)"/>
+
+  <!-- Base Hydro Ring / Swirling Pool -->
+  <path d="M 6,47 C 6,55 18,59 32,59 C 46,59 58,55 58,47 C 58,41 46,37 32,37 C 18,37 6,41 6,47 Z" fill="url(#deepOcean)"/>
+  <path d="M 10,47 C 10,52 20,56 32,56 C 44,56 54,52 54,47 C 54,43 44,39 32,39 C 20,39 10,43 10,47 Z" fill="#0055ff" opacity="0.4"/>
+
+  <!-- Main Towering Wave Body -->
+  <path d="M 8,46 C 14,55 40,57 52,47 C 59,41 57,26 47,15 C 38,4 23,3 14,12 C 6,21 8,33 18,38 C 28,42 37,35 34,26 C 31,17 21,17 19,23 C 17,28 23,31 26,27 C 28,23 23,20 21,22" fill="url(#waveBody)"/>
+
+  <!-- Inner Water Flow & Tube Interior (Isometric Depth) -->
+  <path d="M 47,15 C 55,25 54,37 45,45 C 35,53 17,52 11,45 C 20,50 38,49 46,41 C 53,33 51,21 43,14 Z" fill="url(#innerCurl)" opacity="0.85"/>
+
+  <!-- Lower Crashing Foam Base -->
+  <path d="M 18,48 C 22,43 27,43 30,46 C 33,42 39,43 41,47 C 44,44 50,46 48,49 C 45,53 36,54 29,52 C 22,50 16,52 18,48 Z" fill="url(#foamWhite)"/>
+
+  <!-- Main Wave Crest & Foam Claws -->
+  <path d="M 48,15 C 52,11 49,5 42,4 C 36,3 32,8 26,6 C 21,4 17,3 12,6 C 7,9 6,15 10,18 C 14,20 16,16 20,15 C 24,14 27,17 32,14 C 37,11 42,17 48,15 Z" fill="url(#foamWhite)"/>
+
+  <!-- Inner Curling Eye Foam -->
+  <path d="M 12,13 C 6,21 8,31 15,36 C 22,41 32,39 36,31 C 40,23 34,15 25,15 C 17,15 15,22 20,27 C 24,31 29,28 27,23 C 25,19 20,21 22,24" fill="url(#foamWhite)"/>
+
+  <!-- Isometric Water Particles & Magic Drops -->
+  <polygon points="51,5 54,9 51,13 48,9" fill="#ffffff"/>
+  <polygon points="57,17 59,19 57,21 55,19" fill="#00ffff"/>
+  <polygon points="21,2 23,4 21,6 19,4" fill="#ffffff"/>
+  <polygon points="8,9 11,12 8,15 5,12" fill="#80ffff"/>
+  <polygon points="41,43 43,45 41,47 39,45" fill="#ffffff"/>
+</svg>

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Stream Gradients -->
+    <linearGradient id="streamDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#003b7a"/>
+      <stop offset="50%" stop-color="#0066cc"/>
+      <stop offset="100%" stop-color="#0044a3"/>
+    </linearGradient>
+    
+    <linearGradient id="streamBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="45%" stop-color="#0099ff"/>
+      <stop offset="90%" stop-color="#0055e6"/>
+    </linearGradient>
+
+    <linearGradient id="streamCore" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="35%" stop-color="#b3f6ff"/>
+      <stop offset="70%" stop-color="#00f0ff"/>
+      <stop offset="100%" stop-color="#00a6ff"/>
+    </linearGradient>
+
+    <linearGradient id="impactGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#66edff"/>
+      <stop offset="100%" stop-color="#0088ff"/>
+    </linearGradient>
+
+    <!-- Ring Gradient -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#80f3ff" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#00bcff" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ground Isometric Target Shadow / Base Splash -->
+  <ellipse cx="45" cy="47" rx="15" ry="7.5" fill="#002b5c" opacity="0.4"/>
+  <path d="M 28,47 C 28,41 37,37 47,38 C 57,39 61,44 59,49 C 56,54 43,56 34,54 C 29,52 28,49 28,47 Z" fill="#0052b3" opacity="0.8"/>
+  <path d="M 32,47 C 32,43 39,40 47,41 C 54,42 57,45 55,49 C 52,52 42,53 36,51 C 33,50 32,48 32,47 Z" fill="#00a6ff"/>
+
+  <!-- Back pressure arc (Behind main stream) -->
+  <path d="M 12,24 C 8,16 16,8 24,12" fill="none" stroke="#0044b3" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+  <path d="M 23,35 C 17,25 25,17 35,23" fill="none" stroke="#0055d4" stroke-width="3.5" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Outer Dark Water Silhouette/Ribbon -->
+  <path d="M 6,10 C 12,4 20,8 26,14 L 46,32 C 52,37 56,43 51,48 C 46,52 38,49 33,43 L 14,25 C 8,19 4,14 6,10 Z" fill="url(#streamDark)"/>
+
+  <!-- Main Water Jet Body -->
+  <path d="M 8,9 C 14,5 20,10 25,15 L 47,35 C 53,40 54,45 49,48 C 44,51 39,46 34,42 L 12,21 C 8,16 6,12 8,9 Z" fill="url(#streamBody)"/>
+
+  <!-- High-Velocity Twisting Ribbon -->
+  <path d="M 10,7 C 18,9 22,19 32,21 C 42,23 48,36 53,38 C 47,42 40,36 33,30 C 23,22 16,18 10,7 Z" fill="#00d4ff" opacity="0.9"/>
+
+  <!-- Bright Core Stream -->
+  <path d="M 7,7 C 11,5 15,8 19,12 L 43,35 C 47,39 50,40 52,38 C 48,42 43,41 38,37 L 15,16 C 11,12 8,9 7,7 Z" fill="url(#streamCore)"/>
+
+  <!-- Center Pure White Pressure Filament -->
+  <path d="M 6,6 Q 14,12 24,20 T 46,40" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 14,10 L 40,34" fill="none" stroke="#e0ffff" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- High Pressure Shockwave Rings (Isometric 3D Wrap) -->
+  <!-- Ring 1 (Small, near origin) -->
+  <ellipse cx="18" cy="18" rx="3.5" ry="8" transform="rotate(-45 18 18)" fill="none" stroke="url(#ringGrad)" stroke-width="2"/>
+  
+  <!-- Ring 2 (Medium, mid-stream) -->
+  <ellipse cx="29" cy="29" rx="4.5" ry="11" transform="rotate(-45 29 29)" fill="none" stroke="url(#ringGrad)" stroke-width="2.2"/>
+  
+  <!-- Ring 3 (Large, near impact) -->
+  <ellipse cx="40" cy="40" rx="5.5" ry="13.5" transform="rotate(-45 40 40)" fill="none" stroke="url(#ringGrad)" stroke-width="2.5"/>
+
+  <!-- Front Pressure Arc Highlights -->
+  <path d="M 14,12 C 20,15 22,23 18,25" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M 24,23 C 32,27 34,35 29,38" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- Origin Hydro Burst (Top-Left) -->
+  <path d="M 6,6 L 2,2 M 6,6 L 9,1 M 6,6 L 1,8 M 6,6 L 11,3 M 6,6 L 3,11" stroke="#a6f7ff" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="6" cy="6" r="3" fill="#ffffff"/>
+
+  <!-- Impact Explosive Splash (Bottom-Right) -->
+  <!-- Back/Side Splash Spikes -->
+  <path d="M 42,38 C 36,33 30,31 24,29 C 30,35 34,39 38,42 Z" fill="#0088ff"/>
+  <path d="M 44,36 C 50,30 55,23 58,18 C 57,25 53,32 47,39 Z" fill="#52f0ff"/>
+  <path d="M 50,42 C 55,41 60,38 64,35 C 62,41 57,45 51,46 Z" fill="#00d4ff"/>
+  <!-- Front/Main Splash Spikes -->
+  <path d="M 48,46 C 52,51 56,57 58,62 C 54,57 49,51 44,48 Z" fill="#ffffff"/>
+  <path d="M 41,48 C 35,52 28,56 21,58 C 27,54 33,49 38,46 Z" fill="#70f3ff"/>
+  
+  <!-- Impact Center Foam & Burst Core -->
+  <path d="M 41,43 C 44,39 51,39 54,43 C 57,47 52,52 47,51 C 42,50 39,46 41,43 Z" fill="url(#impactGrad)"/>
+  <circle cx="46" cy="45" r="3.5" fill="#ffffff"/>
+
+  <!-- Flying Water Droplets & Spray Particles -->
+  <circle cx="28" cy="13" r="1.5" fill="#a6f7ff"/>
+  <circle cx="13" cy="29" r="1.2" fill="#70f3ff"/>
+  <circle cx="39" cy="20" r="1.7" fill="#ffffff"/>
+  <circle cx="21" cy="40" r="2" fill="#52f0ff"/>
+  <circle cx="51" cy="25" r="1.5" fill="#ffffff"/>
+  <circle cx="60" cy="28" r="1.2" fill="#a6f7ff"/>
+  <circle cx="60" cy="44" r="1.7" fill="#70f3ff"/>
+  <circle cx="52" cy="57" r="1.5" fill="#ffffff"/>
+  <circle cx="33" cy="58" r="1.8" fill="#52f0ff"/>
+  <circle cx="17" cy="50" r="1" fill="#a6f7ff"/>
+</svg>

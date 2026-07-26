@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Glow Filters -->
+    <filter id="aura-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <filter id="intense-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Color Gradients -->
+    <!-- Rim Gradients -->
+    <linearGradient id="rim-left" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00B0FF" />
+      <stop offset="40%" stop-color="#0060A8" />
+      <stop offset="100%" stop-color="#002855" />
+    </linearGradient>
+
+    <linearGradient id="rim-right" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E0F7FA" />
+      <stop offset="35%" stop-color="#80DEEA" />
+      <stop offset="100%" stop-color="#0091EA" />
+    </linearGradient>
+
+    <!-- Field Gradients -->
+    <linearGradient id="field-left" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0080FF" />
+      <stop offset="70%" stop-color="#003366" />
+      <stop offset="100%" stop-color="#001A33" />
+    </linearGradient>
+
+    <linearGradient id="field-right" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF" />
+      <stop offset="50%" stop-color="#00B0FF" />
+      <stop offset="100%" stop-color="#004080" />
+    </linearGradient>
+
+    <!-- Emblem & Core Gradients -->
+    <linearGradient id="emblem-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#80DEEA" />
+    </linearGradient>
+
+    <linearGradient id="emblem-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF" />
+      <stop offset="100%" stop-color="#005580" />
+    </linearGradient>
+
+    <!-- Magic Field Gradient -->
+    <radialGradient id="magic-ring-grad" cx="50%" cy="50%" r="50%">
+      <stop offset="60%" stop-color="#00E5FF" stop-opacity="0" />
+      <stop offset="85%" stop-color="#00E5FF" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#80DEEA" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- ISOMETRIC SPELL AURA / BASE RING -->
+  <g filter="url(#aura-glow)">
+    <!-- Outer Isometric Magic Ellipse -->
+    <ellipse cx="32" cy="36" rx="27" ry="15" fill="url(#magic-ring-grad)" stroke="#00E5FF" stroke-width="1" opacity="0.7" />
+    
+    <!-- Isometric Hexagonal Magic Shield Boundary -->
+    <path d="M 32 17 L 57 28 L 57 43 L 32 54 L 7 43 L 7 28 Z" fill="none" stroke="#80DEEA" stroke-width="1" stroke-dasharray="4 2 1 2" opacity="0.6" />
+  </g>
+
+  <!-- SHIELD BACKING GLOW (Under Layer) -->
+  <path d="M 32 4 L 54 15 C 54 37 42 50 32 58 C 22 50 10 37 10 15 Z" fill="#00E5FF" opacity="0.4" filter="url(#aura-glow)" />
+
+  <!-- SHIELD MAIN BODY -->
+  
+  <!-- Outer Rim Left (Shadow Side) -->
+  <path d="M 32 5 L 10 15 C 10 37 22 50 32 58 L 32 50 C 24 43 15 32 15 17 L 32 10 Z" fill="url(#rim-left)" />
+
+  <!-- Outer Rim Right (Light Side) -->
+  <path d="M 32 5 L 54 15 C 54 37 42 50 32 58 L 32 50 C 40 43 49 32 49 17 L 32 10 Z" fill="url(#rim-right)" />
+
+  <!-- Inner Field Left -->
+  <path d="M 32 10 L 15 17 C 15 32 24 43 32 50 Z" fill="url(#field-left)" />
+
+  <!-- Inner Field Right -->
+  <path d="M 32 10 L 49 17 C 49 32 40 43 32 50 Z" fill="url(#field-right)" />
+
+  <!-- EMBOSSED INNER DETAILS & MAGICAL EMBLEM -->
+
+  <!-- Subtle Isometric Inset Line -->
+  <path d="M 32 14 L 20 19 C 20 30 27 38 32 44 C 37 38 44 30 44 19 Z" fill="none" stroke="#00E5FF" stroke-width="1" opacity="0.5" />
+
+  <!-- Central Glowing Diamond Crest (Left Half) -->
+  <path d="M 32 16 L 22 28 L 32 42 L 32 30 L 26 28 L 32 24 Z" fill="url(#emblem-dark)" />
+
+  <!-- Central Glowing Diamond Crest (Right Half) -->
+  <path d="M 32 16 L 42 28 L 32 42 L 32 30 L 38 28 L 32 24 Z" fill="url(#emblem-light)" filter="url(#intense-glow)" />
+
+  <!-- Inner Radiant Rune Core -->
+  <polygon points="32,21 36,28 32,35 28,28" fill="#FFFFFF" filter="url(#intense-glow)" />
+
+  <!-- SPECULAR HIGHLIGHTS (Isometric Edge Reflections) -->
+  
+  <!-- Top Rim Specular Highlight -->
+  <path d="M 32 5 L 54 15 L 49 17 L 32 10 L 15 17 L 10 15 Z" fill="#FFFFFF" opacity="0.6" />
+
+  <!-- Center Ridge Highlight Line -->
+  <line x1="32" y1="10" x2="32" y2="50" stroke="#E0F7FA" stroke-width="1.5" opacity="0.8" filter="url(#intense-glow)" />
+
+  <!-- Right Outer Edge Highlight Contour -->
+  <path d="M 54 15 C 54 37 42 50 32 58" fill="none" stroke="#E0F7FA" stroke-width="1.5" opacity="0.7" />
+
+  <!-- FLOATING MAGICAL ENERGY PARTICLES (Isometric Alignment) -->
+  <g fill="#FFFFFF" filter="url(#intense-glow)">
+    <!-- Top Left Sparkle -->
+    <polygon points="14,11 16,13 14,15 12,13" opacity="0.9" />
+    <!-- Bottom Right Sparkle -->
+    <polygon points="48,44 50,46 48,48 46,46" opacity="0.8" />
+    <!-- Top Right Minor Sparkle -->
+    <circle cx="47" cy="10" r="1" opacity="0.9" />
+    <!-- Far Left Magic Shard -->
+    <polygon points="6,24 9,25 7,28 5,26" fill="#80DEEA" opacity="0.7" />
+    <!-- Far Right Magic Shard -->
+    <polygon points="57,33 60,32 58,36 55,35" fill="#00E5FF" opacity="0.7" />
+  </g>
+</svg>

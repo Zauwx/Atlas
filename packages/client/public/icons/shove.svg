@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Steel Shield Gradients -->
+    <linearGradient id="steel-light" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F1F5F9"/>
+      <stop offset="50%" stop-color="#CBD5E1"/>
+      <stop offset="100%" stop-color="#94A3B8"/>
+    </linearGradient>
+    
+    <linearGradient id="steel-mid" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94A3B8"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+
+    <linearGradient id="steel-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+
+    <linearGradient id="steel-rim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#94A3B8"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+
+    <!-- Magic Energy / Motion Gradients -->
+    <linearGradient id="energy-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="40%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+
+    <linearGradient id="energy-trail" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0"/>
+      <stop offset="70%" stop-color="#22D3EE" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <!-- Golden Emblem Gradient -->
+    <linearGradient id="gold-emblem" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="50%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Motion Speed Trails (Behind Shield) -->
+  <g id="motion-trails">
+    <!-- Back trail polygons -->
+    <path d="M 4 15 L 22 25 L 14 27 Z" fill="url(#energy-trail)" opacity="0.7"/>
+    <path d="M 8 29 L 26 39 L 18 41 Z" fill="url(#energy-trail)" opacity="0.8"/>
+    <path d="M 14 7 L 32 17 L 26 18 Z" fill="url(#energy-trail)" opacity="0.5"/>
+
+    <!-- Sharp Speed Lines -->
+    <path d="M 2 13 L 23 25" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 6 23 L 25 34" stroke="#A5F3FC" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M 3 31 L 20 41" stroke="#0284C7" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M 12 5 L 31 16" stroke="#22D3EE" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 15 45 L 29 53" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Shield 3D Extrusion / Back Dark Sides (Isometric Depth) -->
+  <g id="shield-depth">
+    <!-- Top-Left Side Depth -->
+    <path d="M 26 17.5 L 20 13 L 14 27 L 20 32 Z" fill="url(#steel-dark)"/>
+    <!-- Bottom-Left Side Depth -->
+    <path d="M 20 32 L 14 27 L 30 44 L 36 49.5 Z" fill="#090D16"/>
+  </g>
+
+  <!-- Shield Main Front Face -->
+  <g id="shield-face">
+    <!-- Left Half Face (Shadowed) -->
+    <path d="M 26 17.5 L 35 15 L 36 49.5 L 20 32 Z" fill="url(#steel-mid)"/>
+    
+    <!-- Right Half Face (Highlighted) -->
+    <path d="M 35 15 L 44 12.5 L 52 25.5 L 36 49.5 Z" fill="url(#steel-light)"/>
+
+    <!-- Inner Bevel / Plate Cutout -->
+    <path d="M 28 20 L 35 18 L 42 16 L 48 26 L 36 45.5 L 23 31.5 Z" fill="none" stroke="url(#steel-dark)" stroke-width="1" opacity="0.6"/>
+
+    <!-- Rim Highlights (Top Edges) -->
+    <path d="M 20 32 L 26 17.5 L 35 15 L 44 12.5 L 52 25.5" fill="none" stroke="url(#steel-rim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Outer Border Line for crispness -->
+    <path d="M 26 17.5 L 35 15 L 44 12.5 L 52 25.5 L 36 49.5 Z" fill="none" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Inner Tactile Emblem: Forward Thrust Chevron -->
+  <g id="shield-emblem">
+    <!-- Outer Emblem Shadow -->
+    <path d="M 31 22.5 L 40 20.5 L 45 28 L 38 38 L 36 38 L 30 29 Z" fill="#0F172A" opacity="0.5"/>
+    <!-- Golden Boss / Arrow -->
+    <path d="M 32 23.5 L 39 21.5 L 44 27.5 L 38 36.5 L 36 32 L 34 27.5 Z" fill="url(#gold-emblem)"/>
+    <!-- Emblem Highlight Edge -->
+    <path d="M 32 23.5 L 39 21.5 L 44 27.5" fill="none" stroke="#FEF08A" stroke-width="1" stroke-linecap="round"/>
+  </g>
+
+  <!-- Front Impact Arc & Shove Wave (Leading Edge) -->
+  <g id="impact-wave">
+    <!-- Main Pressure Blast Arc -->
+    <path d="M 48 10 C 58 16 63 30 57 45 C 55 49 51 53 45 57 C 51 52 57 44 58 35 C 59 24 54 16 48 10 Z" fill="url(#energy-cyan)"/>
+    
+    <!-- Secondary Outer Shockwave Line -->
+    <path d="M 52 14 C 61 22 63 34 57 48" fill="none" stroke="#A5F3FC" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+
+    <!-- Inner High-Pressure Glow Edge -->
+    <path d="M 45 13 C 52 18 55 27 52 38 C 50 43 46 48 42 51" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+
+    <!-- Impact Force Sparks / Energy Particles -->
+    <polygon points="60,25 62.5,27.5 60,30 57.5,27.5" fill="#FFFFFF"/>
+    <polygon points="53,42 55.5,44 53,46 50.5,44" fill="#22D3EE"/>
+    <polygon points="46,53 48,54.5 46,56 44,54.5" fill="#A5F3FC"/>
+    <polygon points="56,16 58,17.5 56,19 54,17.5" fill="#38BDF8"/>
+  </g>
+
+  <!-- Top Sheen Highlight on Shield Edge -->
+  <path d="M 35 15 L 44 12.5" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+</svg>

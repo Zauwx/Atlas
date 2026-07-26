@@ -182,10 +182,10 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     for (const key of Object.values(TERRAIN_TEXTURE)) {
       this.load.image(key, `tiles/${key}.png`);
     }
-    // Optional generated skill icons: a manifest lists which exist, so the
-    // HUD hot-swaps them in when present and falls back to glyphs otherwise
-    // (see packages/client/tools/generate-spell-icons.mjs). Missing files are
-    // ignored so the board still loads.
+    // Generated skill icons: a manifest lists which exist, so the HUD hot-swaps
+    // them in when present and falls back to glyphs otherwise (vector SVGs from
+    // packages/client/tools/generate-spell-icons-svg.mjs, rasterised on load at
+    // a crisp size). Missing files are ignored so the board still loads.
     this.load.json("icon-manifest", "icons/manifest.json");
     this.load.on(
       "filecomplete-json-icon-manifest",
@@ -195,7 +195,7 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
         }
         for (const id of data) {
           if (typeof id === "string") {
-            this.load.image(iconKey(id), `icons/${id}.png`);
+            this.load.svg(iconKey(id), `icons/${id}.svg`, { width: 96, height: 96 });
           }
         }
       },
