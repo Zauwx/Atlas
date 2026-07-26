@@ -258,6 +258,20 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     this.refreshIdleUi();
   }
 
+  /**
+   * A Phaser Container renders its children in insertion order and ignores
+   * their `depth`, so newly added objects paint over older ones regardless
+   * of height. drawBoard() rebuilds every tile on a terrain change and
+   * appends them after the units, which would otherwise bury the units (and
+   * the highlight/marker layers) behind the ground. Re-sorting by depth each
+   * frame makes the depths assigned across this scene actually drive
+   * occlusion: tiles and units interleave by height, with highlights and
+   * effects on top. The board is ~150 objects, so the stable sort is cheap.
+   */
+  override update(): void {
+    this.boardLayer.sort("depth");
+  }
+
   // --- SessionSink ---
 
   enqueueEvents(events: GameEventBatch): void {
