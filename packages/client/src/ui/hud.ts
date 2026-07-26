@@ -26,6 +26,9 @@ const PANEL_BG = 0x141c2b;
 const PANEL_BORDER = 0x2b3a55;
 const SLOT_SIZE = 56;
 const SLOT_GAP = 8;
+/** Circular turn-timer geometry (top-center). */
+const CLOCK_CY = 52;
+const CLOCK_R = 22;
 
 /** Slot tint by a spell's element, so the bar reads by color at a glance. */
 const ELEMENT_TINT: Readonly<Record<string, number>> = {
@@ -57,6 +60,10 @@ export class Hud {
   private detailText!: Phaser.GameObjects.Text;
   private turnText!: Phaser.GameObjects.Text;
   private endTurnButton!: Phaser.GameObjects.Text;
+
+  private roundText!: Phaser.GameObjects.Text;
+  private clockRing!: Phaser.GameObjects.Graphics;
+  private clockSeconds!: Phaser.GameObjects.Text;
 
   private heroName!: Phaser.GameObjects.Text;
   private heroPortrait!: Phaser.GameObjects.Text;
@@ -103,6 +110,7 @@ export class Hud {
 
     this.buildHeroPanel();
     this.buildEnemyPanel();
+    this.buildCenterClock();
     this.buildTurnZone();
     this.buildSkillBar(ownClassSpellIds);
     this.buildStancePanel();
@@ -147,6 +155,16 @@ export class Hud {
       .setDepth(1001);
     this.enemyBar = this.scene.add.graphics().setScrollFactor(0).setDepth(1001);
     this.enemyHpText = this.text(x + w / 2, y + 39, "", 11, "#ffecec")
+      .setOrigin(0.5, 0.5)
+      .setDepth(1002);
+  }
+
+  /** Top-center round indicator and circular turn timer (flashes under 5s). */
+  private buildCenterClock(): void {
+    const cx = this.scene.scale.width / 2;
+    this.roundText = this.text(cx, 12, "", 12, "#9fb0cc").setOrigin(0.5, 0).setDepth(1001);
+    this.clockRing = this.scene.add.graphics().setScrollFactor(0).setDepth(1001);
+    this.clockSeconds = this.text(cx, CLOCK_CY, "", 17, "#e8eefc")
       .setOrigin(0.5, 0.5)
       .setDepth(1002);
   }
@@ -251,11 +269,8 @@ export class Hud {
     const stances = describeRevealedStances(view.units, myPlayerId, this.config);
     const phaseLine =
       view.phase === "StanceSelection" && !stanceLocked ? "Choose your stance." : "";
-    this.statusText.setText(
-      [`Round ${String(view.roundNumber)}`, stances, phaseLine]
-        .filter((line) => line.length > 0)
-        .join("\n"),
-    );
+    this.statusText.setText([stances, phaseLine].filter((line) => line.length > 0).join("\n"));
+    this.roundText.setText(view.roundNumber > 0 ? `ROUND ${String(view.roundNumber)}` : "");
   }
 
   private updateHeroPanel(unit: UnitView | null): void {
@@ -380,17 +395,34 @@ export class Hud {
   }
 
   private tickTimer(): void {
-    if (this.turnPrefix === "") {
-      this.turnText.setText("");
+    this.turnText.setText(this.turnPrefix);
+    this.clockRing.clear();
+    if (this.turnPrefix === "" || this.turnSeconds === 0) {
+      this.clockSeconds.setText("");
       return;
     }
-    if (this.turnSeconds === 0) {
-      this.turnText.setText(this.turnPrefix);
-      return;
-    }
+    const cx = this.scene.scale.width / 2;
     const elapsed = (this.scene.time.now - this.turnStartMs) / 1000;
     const remaining = Math.max(0, Math.ceil(this.turnSeconds - elapsed));
-    this.turnText.setText(`${this.turnPrefix} · ${String(remaining)}s`);
+    const fraction = Math.max(0, Math.min(1, (this.turnSeconds - elapsed) / this.turnSeconds));
+    const urgent = remaining <= 5;
+    const color = urgent ? 0xff5a5a : 0x3f8ae0;
+
+    this.clockRing.lineStyle(4, 0x22304a, 1);
+    this.clockRing.strokeCircle(cx, CLOCK_CY, CLOCK_R);
+    if (fraction > 0) {
+      const start = Phaser.Math.DegToRad(-90);
+      this.clockRing.lineStyle(4, color, 1);
+      this.clockRing.beginPath();
+      this.clockRing.arc(cx, CLOCK_CY, CLOCK_R, start, start + Math.PI * 2 * fraction, false);
+      this.clockRing.strokePath();
+    }
+    this.clockSeconds.setText(String(remaining));
+    this.clockSeconds.setColor(urgent ? "#ff8a8a" : "#e8eefc");
+    // Under 5s the number blinks to draw the eye.
+    this.clockSeconds.setAlpha(
+      urgent && Math.floor(this.scene.time.now / 400) % 2 === 0 ? 0.35 : 1,
+    );
   }
 
   /** A framed panel: dark fill with a hairline border. */
