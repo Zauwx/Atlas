@@ -36,7 +36,7 @@ import {
   Z_STEP,
 } from "../render/iso.js";
 import { colorForPlayer, colorForTerrain, shade } from "../render/palette.js";
-import { Hud } from "../ui/hud.js";
+import { Hud, iconKey } from "../ui/hud.js";
 
 /**
  * Terrains rendered as a Kenney cube sprite (CC0, see public/tiles). Any
@@ -182,6 +182,27 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     for (const key of Object.values(TERRAIN_TEXTURE)) {
       this.load.image(key, `tiles/${key}.png`);
     }
+    // Optional generated skill icons: a manifest lists which exist, so the
+    // HUD hot-swaps them in when present and falls back to glyphs otherwise
+    // (see packages/client/tools/generate-spell-icons.mjs). Missing files are
+    // ignored so the board still loads.
+    this.load.json("icon-manifest", "icons/manifest.json");
+    this.load.on(
+      "filecomplete-json-icon-manifest",
+      (_key: string, _type: string, data: unknown) => {
+        if (!Array.isArray(data)) {
+          return;
+        }
+        for (const id of data) {
+          if (typeof id === "string") {
+            this.load.image(iconKey(id), `icons/${id}.png`);
+          }
+        }
+      },
+    );
+    this.load.on("loaderror", () => {
+      // A missing icon or manifest is fine — glyphs cover it.
+    });
   }
 
   create(): void {
