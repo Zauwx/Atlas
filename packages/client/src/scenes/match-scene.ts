@@ -361,10 +361,58 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     }
     this.animating = true;
     this.view.apply(event);
+    this.logEvent(event);
     this.animateEvent(event, () => {
       this.animating = false;
       this.processNextEvent();
     });
+  }
+
+  /** "You"/"Enemy" for a unit, so the combat log reads at a glance. */
+  private side(unitId: UnitId): string {
+    const unit = this.view.unitById(unitId);
+    return unit !== null && unit.playerId === this.myPlayerId ? "You" : "Enemy";
+  }
+
+  /** Turns the notable events into one-line combat-log entries. */
+  private logEvent(event: GameEvent): void {
+    switch (event.type) {
+      case "Damage":
+        this.hud.pushLog(
+          `${this.side(event.targetUnitId)} takes ${String(event.amount)} ${event.element}`,
+        );
+        return;
+      case "Heal":
+        this.hud.pushLog(`${this.side(event.targetUnitId)} heals ${String(event.amount)}`);
+        return;
+      case "Collision":
+        this.hud.pushLog(`${this.side(event.unitId)} takes ${String(event.damage)} on impact`);
+        return;
+      case "Fall":
+        if (event.damage > 0) {
+          this.hud.pushLog(`${this.side(event.unitId)} falls — ${String(event.damage)}`);
+        }
+        return;
+      case "ApplyState": {
+        if (event.target.kind === "Unit") {
+          const name =
+            this.view.config.states.find((state) => state.id === event.stateId)?.name ??
+            event.stateId;
+          this.hud.pushLog(`${this.side(event.target.unitId)}: ${name}`);
+        }
+        return;
+      }
+      case "Death":
+        this.hud.pushLog(`${this.side(event.unitId)} is defeated`);
+        return;
+      case "TerrainChanged": {
+        const terrain = event.toTerrainId;
+        this.hud.pushLog(`A tile becomes ${terrain.charAt(0).toUpperCase()}${terrain.slice(1)}`);
+        return;
+      }
+      default:
+        return;
+    }
   }
 
   private animateEvent(event: GameEvent, done: () => void): void {

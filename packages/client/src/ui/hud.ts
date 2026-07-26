@@ -77,6 +77,9 @@ export class Hud {
   private enemyBar!: Phaser.GameObjects.Graphics;
   private enemyHpText!: Phaser.GameObjects.Text;
 
+  private logText!: Phaser.GameObjects.Text;
+  private readonly logLines: string[] = [];
+
   private readonly slots: SkillSlot[] = [];
   private readonly stancePanel: Phaser.GameObjects.GameObject[] = [];
   private messageTimer: Phaser.Time.TimerEvent | null = null;
@@ -111,6 +114,7 @@ export class Hud {
     this.buildHeroPanel();
     this.buildEnemyPanel();
     this.buildCenterClock();
+    this.buildCombatLog();
     this.buildTurnZone();
     this.buildSkillBar(ownClassSpellIds);
     this.buildStancePanel();
@@ -167,6 +171,33 @@ export class Hud {
     this.clockSeconds = this.text(cx, CLOCK_CY, "", 17, "#e8eefc")
       .setOrigin(0.5, 0.5)
       .setDepth(1002);
+  }
+
+  /** Bottom-right combat log — a rolling history of the last few actions. */
+  private buildCombatLog(): void {
+    const { width, height } = this.scene.scale;
+    const w = 250;
+    const h = 116;
+    const x = width - 12 - w;
+    const y = height - 80 - h;
+    this.panel(x, y, w, h);
+    this.text(x + 12, y + 8, "COMBAT LOG", 10, "#5f6f8c")
+      .setOrigin(0, 0)
+      .setDepth(1001);
+    this.logText = this.text(x + 12, y + 26, "", 11, "#9fb0cc")
+      .setOrigin(0, 0)
+      .setDepth(1001);
+    this.logText.setWordWrapWidth(w - 24);
+    this.logText.setLineSpacing(3);
+  }
+
+  /** Appends one line to the combat log, keeping only the most recent few. */
+  pushLog(line: string): void {
+    this.logLines.push(line);
+    while (this.logLines.length > 5) {
+      this.logLines.shift();
+    }
+    this.logText.setText(this.logLines.join("\n"));
   }
 
   private buildTurnZone(): void {
