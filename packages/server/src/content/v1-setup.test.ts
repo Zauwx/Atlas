@@ -49,7 +49,7 @@ describe("V1 match setup: class choice", () => {
       [CLASS_ID_TIDECALLER, CLASS_ID_TIDECALLER],
       V1_GAME_CONFIG,
     );
-    expect(setup.players[0]?.units[0]?.position).toEqual({ x: 1, y: 5, z: 0 });
-    expect(setup.players[1]?.units[0]?.position).toEqual({ x: 10, y: 6, z: 0 });
+    expect(setup.players[0]?.units[0]?.position).toEqual({ x: 2, y: 8, z: 0 });
+    expect(setup.players[1]?.units[0]?.position).toEqual({ x: 13, y: 7, z: 0 });
   });
 });

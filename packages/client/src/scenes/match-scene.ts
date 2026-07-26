@@ -206,12 +206,8 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
   }
 
   create(): void {
-    const boardPixelCenterX = isoX(this.view.width - 1, 0) / 2 + isoX(0, this.view.height - 1) / 2;
-    const boardPixelCenterY = isoY(this.view.width - 1, this.view.height - 1, 0) / 2;
-    this.boardLayer = this.add.container(
-      this.scale.width / 2 - boardPixelCenterX,
-      this.scale.height / 2 - boardPixelCenterY - 30,
-    );
+    this.boardLayer = this.add.container(0, 0);
+    this.fitBoard();
     // Tiles are added directly to the board layer with per-cube depth, so
     // units (also depth-sorted) occlude and are occluded correctly.
     this.highlightGraphics = this.add.graphics();
@@ -256,11 +252,8 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
       this.handlePointerDown(pointer);
     });
     this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
-      const cell = pickCell(
-        this.view.cells,
-        pointer.x - this.boardLayer.x,
-        pointer.y - this.boardLayer.y,
-      );
+      const local = this.boardLocal(pointer);
+      const cell = pickCell(this.view.cells, local.x, local.y);
       const next = cell === null ? null : { x: cell.x, y: cell.y };
       const changed =
         (next === null) !== (this.hoveredCell === null) ||
@@ -559,9 +552,8 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
     if (myUnit === null) {
       return;
     }
-    const localX = pointer.x - this.boardLayer.x;
-    const localY = pointer.y - this.boardLayer.y;
-    const cell = pickCell(this.view.cells, localX, localY);
+    const local = this.boardLocal(pointer);
+    const cell = pickCell(this.view.cells, local.x, local.y);
     if (cell === null) {
       return;
     }
@@ -623,6 +615,46 @@ export class MatchScene extends Phaser.Scene implements SessionSink {
   }
 
   // --- Rendering ---
+
+  /** Pointer position in board-local space, undoing the board's fit scale. */
+  private boardLocal(pointer: Phaser.Input.Pointer): { x: number; y: number } {
+    const scale = this.boardLayer.scaleX || 1;
+    return {
+      x: (pointer.x - this.boardLayer.x) / scale,
+      y: (pointer.y - this.boardLayer.y) / scale,
+    };
+  }
+
+  /**
+   * Scales and centres the board so any map size — including tall terraces —
+   * fits in the band between the enemy panel and the HUD bar, never
+   * overflowing the viewport or hiding behind the UI.
+   */
+  private fitBoard(): void {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const cell of this.view.cells) {
+      const centerX = isoX(cell.x, cell.y);
+      minX = Math.min(minX, centerX - TILE_WIDTH / 2);
+      maxX = Math.max(maxX, centerX + TILE_WIDTH / 2);
+      // Top of the raised diamond up top; bottom of the ground-level cube skirt.
+      minY = Math.min(minY, isoY(cell.x, cell.y, cell.z) - TILE_HEIGHT / 2);
+      maxY = Math.max(maxY, isoY(cell.x, cell.y, 0) + TILE_HEIGHT / 2 + Z_STEP);
+    }
+    const topMargin = 78;
+    const bottomMargin = 84;
+    const sideMargin = 20;
+    const availableWidth = this.scale.width - sideMargin * 2;
+    const availableHeight = this.scale.height - topMargin - bottomMargin;
+    const scale = Math.min(1, availableWidth / (maxX - minX), availableHeight / (maxY - minY));
+    this.boardLayer.setScale(scale);
+    this.boardLayer.setPosition(
+      this.scale.width / 2 - ((minX + maxX) / 2) * scale,
+      topMargin + availableHeight / 2 - ((minY + maxY) / 2) * scale,
+    );
+  }
 
   /**
    * Rebuilds the board. Mapped terrains render as stacked Kenney cube

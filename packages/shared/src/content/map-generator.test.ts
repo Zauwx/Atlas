@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MapCell, MapConfig } from "../config/map-config.js";
 import { MapConfigSchema } from "../config/map-config.js";
+import { Z_MAX } from "../board/coordinates.js";
 import { TERRAIN_ID_NORMAL, TERRAIN_ID_VOID } from "../config/baseline-game-config.js";
 import {
   DEFAULT_MAP_SEED,
@@ -14,7 +15,7 @@ import {
 const SEEDS = Array.from({ length: 50 }, (_, index) => index * 2654435761 + 1);
 
 const cellAt = (map: MapConfig, x: number, y: number): MapCell | undefined =>
-  map.cells[y * map.width + x];
+  x < 0 || x >= map.width || y < 0 || y >= map.height ? undefined : map.cells[y * map.width + x];
 
 /** Independent BFS: can player 1 reach player 2 over walkable ground? */
 function spawnsConnected(map: MapConfig): boolean {
@@ -64,14 +65,14 @@ function spawnsConnected(map: MapConfig): boolean {
 }
 
 describe("procedural map generator", () => {
-  it("is a valid 12×12 map for every seed", () => {
+  it("is a valid 16×16 map for every seed", () => {
     for (const seed of SEEDS) {
       const map = generateMap(seed);
       expect(MapConfigSchema.safeParse(map).success).toBe(true);
       expect(map.id).toBe(V1_MAP_ID);
-      expect(map.width).toBe(12);
-      expect(map.height).toBe(12);
-      expect(map.cells).toHaveLength(144);
+      expect(map.width).toBe(16);
+      expect(map.height).toBe(16);
+      expect(map.cells).toHaveLength(256);
     }
   });
 
@@ -81,25 +82,39 @@ describe("procedural map generator", () => {
     }
   });
 
-  it("is point-symmetric, so neither spawn gets kinder ground", () => {
+  it("is genuinely random, not mirrored about the centre", () => {
+    // A point-symmetric board would match every cell to (W-1-x, H-1-y). A real
+    // roll should not — at least some seed must break the mirror.
+    const mirrored = SEEDS.map((seed) => {
+      const map = generateMap(seed);
+      return map.cells.every((cell, index) => {
+        const x = index % map.width;
+        const y = Math.floor(index / map.width);
+        const twin = cellAt(map, map.width - 1 - x, map.height - 1 - y);
+        return cell.z === twin?.z && cell.terrainId === twin.terrainId;
+      });
+    });
+    expect(mirrored.every((isMirror) => isMirror)).toBe(false);
+  });
+
+  it("keeps every orthogonal step within one level, so all ground is climbable", () => {
     for (const seed of SEEDS) {
       const map = generateMap(seed);
       for (let y = 0; y < map.height; y += 1) {
         for (let x = 0; x < map.width; x += 1) {
           const cell = cellAt(map, x, y);
-          const mirror = cellAt(map, map.width - 1 - x, map.height - 1 - y);
-          expect(cell?.z).toBe(mirror?.z);
-          expect(cell?.terrainId).toBe(mirror?.terrainId);
+          expect(cell?.z).toBeGreaterThanOrEqual(0);
+          expect(cell?.z).toBeLessThanOrEqual(Z_MAX);
+          for (const [dx, dy] of [
+            [1, 0],
+            [0, 1],
+          ] as const) {
+            const neighbour = cellAt(map, x + dx, y + dy);
+            if (cell !== undefined && neighbour !== undefined) {
+              expect(Math.abs(cell.z - neighbour.z)).toBeLessThanOrEqual(1);
+            }
+          }
         }
-      }
-    }
-  });
-
-  it("keeps only climbable elevation (0–2), so no rise is a sealed pillar", () => {
-    for (const seed of SEEDS) {
-      for (const cell of generateMap(seed).cells) {
-        expect(cell.z).toBeGreaterThanOrEqual(0);
-        expect(cell.z).toBeLessThanOrEqual(2);
       }
     }
   });
@@ -130,9 +145,16 @@ describe("procedural map generator", () => {
     }
   });
 
+  it("raises genuinely tall terrain, not just low bumps", () => {
+    // Across the sample, some board must reach a real height (z ≥ 3).
+    const tallest = Math.max(
+      ...SEEDS.map((seed) => Math.max(...generateMap(seed).cells.map((cell) => cell.z))),
+    );
+    expect(tallest).toBeGreaterThanOrEqual(3);
+  });
+
   it("rolls genuinely different boards for different seeds", () => {
     const shapes = new Set(SEEDS.map((seed) => JSON.stringify(generateMap(seed).cells)));
-    // Not every seed need differ, but the field must not be constant.
     expect(shapes.size).toBeGreaterThan(SEEDS.length / 2);
   });
 
