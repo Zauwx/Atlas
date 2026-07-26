@@ -145,12 +145,18 @@ describe("procedural map generator", () => {
     }
   });
 
-  it("raises genuinely tall terrain, not just low bumps", () => {
-    // Across the sample, some board must reach a real height (z ≥ 3).
-    const tallest = Math.max(
-      ...SEEDS.map((seed) => Math.max(...generateMap(seed).cells.map((cell) => cell.z))),
+  it("keeps elevation gentle — some relief, never mountainous", () => {
+    const heights = SEEDS.map((seed) => Math.max(...generateMap(seed).cells.map((cell) => cell.z)));
+    // Terraces exist somewhere, but never rise above two levels.
+    expect(Math.max(...heights)).toBeLessThanOrEqual(2);
+    expect(heights.some((h) => h >= 1)).toBe(true);
+  });
+
+  it("carves an organic, non-square landmass — edges eroded to void", () => {
+    const withVoid = SEEDS.filter((seed) =>
+      generateMap(seed).cells.some((cell) => cell.terrainId === TERRAIN_ID_VOID),
     );
-    expect(tallest).toBeGreaterThanOrEqual(3);
+    expect(withVoid.length).toBeGreaterThan(SEEDS.length * 0.8);
   });
 
   it("rolls genuinely different boards for different seeds", () => {

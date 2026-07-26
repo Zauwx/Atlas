@@ -42,8 +42,11 @@ export const V1_SPAWN_PLAYER_2 = { x: 13, y: 7, z: 0 } as const;
 /** The default featured board, used as a stable reference and in tests. */
 export const DEFAULT_MAP_SEED = 1;
 
-/** Tallest terrace a mound can raise; kept under the board's Z_MAX ceiling. */
-const MAX_PEAK = 4;
+/**
+ * Tallest terrace a mound can raise. Kept low (1–2) — a tactics map wants
+ * gentle relief, not mountains — so elevation reads as steppable ground.
+ */
+const MAX_PEAK = 2;
 
 /**
  * mulberry32 — a tiny, fast, well-distributed PRNG. Deterministic: a seed
@@ -137,6 +140,19 @@ export function generateMap(seed: number): MapConfig {
   scatter(randInt, cells, TERRAIN_ID_LAVA, 1 + randInt(3), true);
   scatter(randInt, cells, TERRAIN_ID_VOID, 1 + randInt(2), true);
 
+  // Eat into the edges so the board is an organic landmass, not a square:
+  // outer rings turn to void with a probability that fades inward, giving a
+  // ragged coastline. The interior core is left intact.
+  for (let y = 0; y < HEIGHT; y += 1) {
+    for (let x = 0; x < WIDTH; x += 1) {
+      const border = Math.min(x, WIDTH - 1 - x, y, HEIGHT - 1 - y);
+      const erode = EDGE_EROSION[border] ?? 0;
+      if (erode > 0 && rng() < erode) {
+        write(x, y, { terrainId: TERRAIN_ID_VOID });
+      }
+    }
+  }
+
   // Guarantee open footing: each spawn and its orthogonal neighbours are
   // plain z0 ground (mounds already avoid this zone, so no cliff is created).
   for (const spawn of SPAWNS) {
@@ -145,12 +161,17 @@ export function generateMap(seed: number): MapConfig {
     }
   }
 
-  // Guarantee a route: dissolve void if it ever islands a spawn. Elevation
-  // alone can't disconnect (every step is at most +1), so this always works.
-  ensureConnected(cells);
+  // Keep only the single landmass the first spawn stands on: everything the
+  // spawn can't walk to (eroded edges, cut-off islands) becomes void. The
+  // second spawn is always in it — both spawns' cleared neighbours reach the
+  // untouched core — so a route between them is guaranteed.
+  keepSpawnLandmass(cells);
 
   return { id: V1_MAP_ID, name: "Contested Ground", width: WIDTH, height: HEIGHT, cells };
 }
+
+/** Void probability of a cell by its distance to the nearest board edge. */
+const EDGE_EROSION: readonly number[] = [0.55, 0.32, 0.14];
 
 const ORTHOGONAL: readonly (readonly [number, number])[] = [
   [1, 0],
@@ -263,16 +284,18 @@ function reachableFromPlayer1(cells: readonly MapCell[]): boolean[] {
   return seen;
 }
 
-/** Dissolves void back to ground until the two spawns connect. */
-function ensureConnected(cells: MapCell[]): void {
-  const goal = indexOf(V1_SPAWN_PLAYER_2.x, V1_SPAWN_PLAYER_2.y);
-  if (reachableFromPlayer1(cells)[goal] === true) {
-    return;
-  }
+/**
+ * Voids every cell the first spawn can't walk to, leaving one connected
+ * landmass with organic edges. Elevation never disconnects (each step is at
+ * most +1) and both spawns reach the untouched core, so the second spawn is
+ * always kept and a route between them survives.
+ */
+function keepSpawnLandmass(cells: MapCell[]): void {
+  const reachable = reachableFromPlayer1(cells);
   for (let index = 0; index < cells.length; index += 1) {
     const cell = cells[index];
-    if (cell?.terrainId === TERRAIN_ID_VOID) {
-      cells[index] = { ...cell, terrainId: TERRAIN_ID_NORMAL };
+    if (cell !== undefined && cell.terrainId !== TERRAIN_ID_VOID && reachable[index] !== true) {
+      cells[index] = { ...cell, terrainId: TERRAIN_ID_VOID };
     }
   }
 }
