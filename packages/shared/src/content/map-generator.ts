@@ -138,18 +138,46 @@ export function generateMap(seed: number): MapConfig {
   scatter(randInt, cells, TERRAIN_ID_VEGETATION, 3 + randInt(4), false);
   scatter(randInt, cells, TERRAIN_ID_EARTH, 2 + randInt(4), false);
   scatter(randInt, cells, TERRAIN_ID_LAVA, 1 + randInt(3), true);
-  scatter(randInt, cells, TERRAIN_ID_VOID, 1 + randInt(2), true);
 
-  // Eat into the edges so the board is an organic landmass, not a square:
-  // outer rings turn to void with a probability that fades inward, giving a
-  // ragged coastline. The interior core is left intact.
-  for (let y = 0; y < HEIGHT; y += 1) {
-    for (let x = 0; x < WIDTH; x += 1) {
-      const border = Math.min(x, WIDTH - 1 - x, y, HEIGHT - 1 - y);
-      const erode = EDGE_EROSION[border] ?? 0;
-      if (erode > 0 && rng() < erode) {
-        write(x, y, { terrainId: TERRAIN_ID_VOID });
+  // Shape the landmass: bite a few coherent bays inward from random edges, so
+  // the island's silhouette differs from match to match — never a plain
+  // square — with the odd inner pit as a punishing ledge. A protected
+  // corridor between the spawns is never carved, so a route across always
+  // survives. Void stays rare, which keeps it a real hazard, not the floor.
+  const guarded = protectedCells();
+  const carveVoid = (cx: number, cy: number, radius: number): void => {
+    for (let y = Math.max(0, cy - radius); y <= Math.min(HEIGHT - 1, cy + radius); y += 1) {
+      for (let x = Math.max(0, cx - radius); x <= Math.min(WIDTH - 1, cx + radius); x += 1) {
+        if (!guarded.has(indexOf(x, y)) && (x - cx) ** 2 + (y - cy) ** 2 <= radius * radius) {
+          write(x, y, { terrainId: TERRAIN_ID_VOID });
+        }
       }
+    }
+  };
+  const bayCount = 1 + randInt(3);
+  for (let bay = 0; bay < bayCount; bay += 1) {
+    const along = randInt(WIDTH);
+    const radius = 2 + randInt(3);
+    switch (randInt(4)) {
+      case 0:
+        carveVoid(along, -1, radius);
+        break;
+      case 1:
+        carveVoid(along, HEIGHT, radius);
+        break;
+      case 2:
+        carveVoid(-1, along, radius);
+        break;
+      default:
+        carveVoid(WIDTH, along, radius);
+        break;
+    }
+  }
+  const pitCount = randInt(3);
+  for (let pit = 0; pit < pitCount; pit += 1) {
+    const centre = pickOpenCell(randInt, 3);
+    if (!guarded.has(indexOf(centre.x, centre.y))) {
+      write(centre.x, centre.y, { terrainId: TERRAIN_ID_VOID });
     }
   }
 
@@ -170,9 +198,6 @@ export function generateMap(seed: number): MapConfig {
   return { id: V1_MAP_ID, name: "Contested Ground", width: WIDTH, height: HEIGHT, cells };
 }
 
-/** Void probability of a cell by its distance to the nearest board edge. */
-const EDGE_EROSION: readonly number[] = [0.55, 0.32, 0.14];
-
 const ORTHOGONAL: readonly (readonly [number, number])[] = [
   [1, 0],
   [-1, 0],
@@ -180,6 +205,37 @@ const ORTHOGONAL: readonly (readonly [number, number])[] = [
   [0, -1],
 ];
 const ORTHOGONAL_WITH_SELF: readonly (readonly [number, number])[] = [[0, 0], ...ORTHOGONAL];
+
+/**
+ * Cells that carving must never touch: each spawn's breathing room and a
+ * one-cell-wide corridor between the two spawns. Guaranteeing this strip
+ * stays land is what keeps every rolled shape traversable spawn-to-spawn.
+ */
+function protectedCells(): Set<number> {
+  const set = new Set<number>();
+  const mark = (x: number, y: number): void => {
+    if (inBounds(x, y)) {
+      set.add(indexOf(x, y));
+    }
+  };
+  for (const spawn of SPAWNS) {
+    for (let dy = -2; dy <= 2; dy += 1) {
+      for (let dx = -2; dx <= 2; dx += 1) {
+        mark(spawn.x + dx, spawn.y + dy);
+      }
+    }
+  }
+  const steps = 48;
+  for (let i = 0; i <= steps; i += 1) {
+    const t = i / steps;
+    const x = Math.round(V1_SPAWN_PLAYER_1.x + (V1_SPAWN_PLAYER_2.x - V1_SPAWN_PLAYER_1.x) * t);
+    const y = Math.round(V1_SPAWN_PLAYER_1.y + (V1_SPAWN_PLAYER_2.y - V1_SPAWN_PLAYER_1.y) * t);
+    for (const [dx, dy] of ORTHOGONAL_WITH_SELF) {
+      mark(x + dx, y + dy);
+    }
+  }
+  return set;
+}
 
 /** A mound centre whose whole cone stays clear of both spawn zones. */
 function pickMoundCentre(randInt: (n: number) => number, peak: number): Point | null {

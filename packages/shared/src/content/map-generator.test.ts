@@ -152,11 +152,16 @@ describe("procedural map generator", () => {
     expect(heights.some((h) => h >= 1)).toBe(true);
   });
 
-  it("carves an organic, non-square landmass — edges eroded to void", () => {
-    const withVoid = SEEDS.filter((seed) =>
-      generateMap(seed).cells.some((cell) => cell.terrainId === TERRAIN_ID_VOID),
+  it("carves varied, non-square islands while keeping void rare", () => {
+    const voidCounts = SEEDS.map(
+      (seed) => generateMap(seed).cells.filter((cell) => cell.terrainId === TERRAIN_ID_VOID).length,
     );
-    expect(withVoid.length).toBeGreaterThan(SEEDS.length * 0.8);
+    // Almost every roll is shaped (some void), and the silhouette genuinely
+    // varies from map to map (many distinct void counts).
+    expect(voidCounts.filter((count) => count > 0).length).toBeGreaterThan(SEEDS.length * 0.9);
+    expect(new Set(voidCounts).size).toBeGreaterThan(5);
+    // But void stays rare — a punishing hazard, never much of the floor.
+    expect(Math.max(...voidCounts)).toBeLessThan(256 * 0.3);
   });
 
   it("rolls genuinely different boards for different seeds", () => {
